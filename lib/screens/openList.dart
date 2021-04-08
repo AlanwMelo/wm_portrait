@@ -46,6 +46,8 @@ class _OpenListState extends State<OpenList> {
   bool loadingFiles = false;
   int loadingFilesActual;
   int loadingFilesTotal;
+  double tweenBegin = 0;
+  double tweenEnd = 0;
 
   //Animated Containers
   Widget widgetLoadingTextSwitcher = Container();
@@ -245,60 +247,72 @@ class _OpenListState extends State<OpenList> {
                 ],
               ),
             ),
-            loadingFiles == true ? Container(color: AppColorsDialga().white().withOpacity(0.8),
-            child: Center(
-    child: Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Stack(
-          children: [
-            Container(
-              height: 100,
-              width: 100,
-              child: Center(
-                child: Container(
-                  child: Text(
-                    _actualListTotal & _actualListProcessed != 0 ?
-                    '${((_actualListProcessed / _actualListTotal) * 100).round()}%' : '0%',
-                    style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 20,
-                        color: AppColorsDialga().black()),
-                  ),
-                ),
-              ),
-            ),
-            Container(
-                child: Container(
-                  height: 100,
-                  width: 100,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 10,
-                    valueColor: AlwaysStoppedAnimation<Color>(
-                        AppColorsDialga().black()),
-                    value: _valueOfLoadingIndicator,
-                  ),
-                )),
-          ],
-        ),
-        SizedBox(height: 15),
-        Container(
-          child: Container(
-            child: Text(
-                'Carregando arquivos:  $_actualListProcessed/${_actualListTotal == 0 ? '?' : _actualListTotal}',
-                style: TextStyle(
-                  fontSize: 20,
-                  color: AppColorsDialga().black(),
-                  fontWeight: FontWeight.bold,
-                )),
-          ),
-        ),
-      ],
-    ),
-    ),) : Container(),
+            loadingFiles == true
+                ? Container(
+                    color: AppColorsDialga().white().withOpacity(0.8),
+                    child: Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Stack(
+                            children: [
+                              Container(
+                                height: 100,
+                                width: 100,
+                                child: Center(
+                                  child: Container(
+                                    child: Text(
+                                      _actualListTotal & _actualListProcessed !=
+                                              0
+                                          ? '${((_actualListProcessed / _actualListTotal) * 100).round()}%'
+                                          : '0%',
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 20,
+                                          color: AppColorsDialga().black()),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              Container(
+                                  child: Container(
+                                height: 100,
+                                width: 100,
+                                child: TweenAnimationBuilder<double>(
+                                  tween: Tween<double>(begin: tweenBegin, end: tweenEnd),
+                                  duration: const Duration(milliseconds: 500),
+                                  builder: (context, value, _) =>
+                                      CircularProgressIndicator(
+                                    value: value,
+                                    strokeWidth: 10,
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                        AppColorsDialga().black()),
+                                  ),
+                                ),
+                              )),
+                            ],
+                          ),
+                          SizedBox(height: 15),
+                          Container(
+                            child: Container(
+                              child: Text(
+                                  'Carregando arquivos:  $_actualListProcessed/${_actualListTotal == 0 ? '?' : _actualListTotal}',
+                                  style: TextStyle(
+                                    fontSize: 20,
+                                    color: AppColorsDialga().black(),
+                                    fontWeight: FontWeight.bold,
+                                  )),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                : Container(),
           ],
         ));
   }
+
   ///Recupera o diretório do app
   getStoragePath() async {
     final directory = await getApplicationDocumentsDirectory();
@@ -539,6 +553,8 @@ class _OpenListState extends State<OpenList> {
         filesList.add(ListOfFiles('$result/${file.title}', file.title, type,
             videoLength, fileOrientation));
         _actualListProcessed = _actualListProcessed + 1;
+        tweenBegin = tweenEnd;
+        tweenEnd = _actualListProcessed / _actualListTotal;
         _valueOfLoadingIndicator = _actualListProcessed / _actualListTotal;
       });
 
@@ -552,6 +568,8 @@ class _OpenListState extends State<OpenList> {
 
     setState(() {
       _valueOfLoadingIndicator = 0;
+      tweenEnd = 0;
+      tweenBegin = 0;
       _actualListTotal = 0;
       _actualListProcessed = 0;
       loadingFiles = !loadingFiles;
@@ -684,7 +702,7 @@ class _OpenListState extends State<OpenList> {
     }
     if (gridScrollController.offset !=
         gridScrollController.position.maxScrollExtent) {
-      if(!widgetBottomBarIsVisible){
+      if (!widgetBottomBarIsVisible) {
         widgetBottomBarIsVisible = true;
         widgetBottomBar = widgetBottomBarVisible();
         setState(() {});
