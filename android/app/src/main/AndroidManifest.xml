@@ -3,7 +3,7 @@
 
     <application
         android:icon="@mipmap/ic_launcher"
-        android:label="portrait"
+        android:label="WG Portrait"
         android:requestLegacyExternalStorage="true">
         <activity
             android:name=".MainActivity"

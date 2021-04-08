@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:portrait/classes/appColors.dart';
 import 'package:portrait/db/dbManager.dart';
 import 'dart:io';
-
-import 'file:///C:/Users/AlanWillianMelo/AndroidStudioProjects/portrait/lib/screens/openList.dart';
+import 'package:portrait/screens/openList.dart';
 
 void main() {
   runApp(MyApp());
@@ -23,6 +22,7 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'WG Portrait',
       theme: ThemeData(
         primaryColor: AppColorsDialga().primaryColor(),

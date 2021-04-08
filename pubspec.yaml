@@ -47,6 +47,7 @@ dependencies:
   better_player: ^0.0.63
   flutter_video_info: ^1.2.0
   flutter_bloc: ^7.0.0
+  clippy_flutter: ^1.1.1
 
 dev_dependencies:
   flutter_test:
