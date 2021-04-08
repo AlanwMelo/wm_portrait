@@ -2,8 +2,9 @@ class ListOfFiles {
   String filePath;
   String fileName;
   String fileType;
-  String videoLenght;
+  String videoLength;
   String fileOrientation;
+  String specialIMG;
 
-  ListOfFiles(this.filePath, this.fileName, this.fileType, this.videoLenght, this.fileOrientation);
+  ListOfFiles(this.filePath, this.fileName, this.fileType, this.videoLength, this.fileOrientation, this.specialIMG);
 }

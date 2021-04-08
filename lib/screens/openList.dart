@@ -1,12 +1,14 @@
 import 'dart:io';
 import 'package:clippy_flutter/clippy_flutter.dart';
 import 'package:device_info/device_info.dart';
+import 'package:exif/exif.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:flutter_video_info/flutter_video_info.dart';
+import 'package:panorama/panorama.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:photo_manager/photo_manager.dart';
@@ -180,7 +182,7 @@ class _OpenListState extends State<OpenList> {
                                                                     Text(
                                                                       filesList[
                                                                               index]
-                                                                          .videoLenght,
+                                                                          .videoLength,
                                                                       style:
                                                                           TextStyle(
                                                                         color: Colors
@@ -279,7 +281,8 @@ class _OpenListState extends State<OpenList> {
                                 height: 100,
                                 width: 100,
                                 child: TweenAnimationBuilder<double>(
-                                  tween: Tween<double>(begin: tweenBegin, end: tweenEnd),
+                                  tween: Tween<double>(
+                                      begin: tweenBegin, end: tweenEnd),
                                   duration: const Duration(milliseconds: 500),
                                   builder: (context, value, _) =>
                                       CircularProgressIndicator(
@@ -361,7 +364,7 @@ class _OpenListState extends State<OpenList> {
       await testCompressAndGetFile(
               compressedImage, '${listPath}thumb_${thisFileName}jpg')
           .then((value) {
-        filesList.add(ListOfFiles(file.path, file.name, 'video', '', ''));
+        filesList.add(ListOfFiles(file.path, file.name, 'video', '', '', ''));
         print('actual $_actualListProcessed total $_actualListTotal');
         _actualListProcessed = _actualListProcessed + 1;
         _valueOfLoadingIndicator =
@@ -425,8 +428,20 @@ class _OpenListState extends State<OpenList> {
   loadList() async {
     var result = await dbManager.readFilesOfList(widget.listName);
     result.forEach((file) {
-      filesList.add(ListOfFiles(file['FilePath'], file['FileName'],
-          file['FileType'], file['VideoDuration'], file['FileOrientation']));
+      filesList.add(ListOfFiles(
+          file['FilePath'],
+          file['FileName'],
+          file['FileType'],
+          file['VideoDuration'],
+          file['FileOrientation'],
+          file['SpecialIMG']));
+
+      print(file['FilePath']);
+      print(file['FileName']);
+      print(file['FileType']);
+      print(file['VideoDuration']);
+      print(file['FileOrientation']);
+      print(file['SpecialIMG']);
       setState(() {});
     });
   }
@@ -488,13 +503,13 @@ class _OpenListState extends State<OpenList> {
 
       print(
           'loading list from $loadFromListStart to $loadFromListEnd <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<');
-
       await Future.forEach(
           filesInDir.sublist(loadFromListStart - 1, loadFromListEnd),
           (file) async {
         String fileOrientation;
         String videoLength = '';
         String type;
+        String specialIMG = '';
 
         getFileOrientation(int orientation) {
           if (orientation == 90 || orientation == 270) {
@@ -521,6 +536,7 @@ class _OpenListState extends State<OpenList> {
               fileOrientation,
               videoLength,
               deviceName,
+              '',
               DateTime.now().millisecondsSinceEpoch);
 
           var apiThumb = await videoThumb.Thumbnails.getThumbnail(
@@ -536,6 +552,19 @@ class _OpenListState extends State<OpenList> {
         } else {
           getFileOrientation(file.orientation);
           type = 'image';
+
+          Future<Map<String, IfdTag>> data = readExifFromBytes(
+              await File('$result/${file.title}').readAsBytes());
+          await data.then((data) async {
+            if (data['Image ImageWidth'] != null) {
+              int width = int.parse(data['Image ImageWidth'].toString());
+              int height = int.parse(data['Image ImageLength'].toString());
+              if ((width / 2) >= height) {
+                specialIMG = 'true';
+              }
+            }
+          });
+
           await dbManager.insertFileIntoList(
               widget.listName,
               file.title,
@@ -544,6 +573,7 @@ class _OpenListState extends State<OpenList> {
               fileOrientation,
               '',
               deviceName,
+              specialIMG,
               DateTime.now().millisecondsSinceEpoch);
 
           var thumb = await file.thumbData;
@@ -551,7 +581,7 @@ class _OpenListState extends State<OpenList> {
         }
 
         filesList.add(ListOfFiles('$result/${file.title}', file.title, type,
-            videoLength, fileOrientation));
+            videoLength, fileOrientation, specialIMG));
         _actualListProcessed = _actualListProcessed + 1;
         tweenBegin = tweenEnd;
         tweenEnd = _actualListProcessed / _actualListTotal;

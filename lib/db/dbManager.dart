@@ -60,6 +60,7 @@ class MyDbManager {
         "FileOrientation TEXT,"
         "VideoDuration TEXT,"
         "OriginDevice TEXT,"
+        "SpecialIMG TEXT,"
         "Created NUMERIC"
         ")");
   }
@@ -106,6 +107,7 @@ class MyDbManager {
       String fileOrientation,
       String videoDuration,
       String originDevice,
+      String specialIMG,
       int created) async {
     Database db = await _startDB();
 
@@ -116,6 +118,7 @@ class MyDbManager {
       "FileOrientation": fileOrientation,
       "VideoDuration": videoDuration,
       "OriginDevice": originDevice,
+      "SpecialIMG": specialIMG,
       "Created": created,
     };
 

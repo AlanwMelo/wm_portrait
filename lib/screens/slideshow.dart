@@ -3,6 +3,7 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:panorama/panorama.dart';
 import 'package:portrait/classes/classes.dart';
 import 'file:///C:/Users/AlanWillianMelo/AndroidStudioProjects/portrait/lib/classes/betterPlayer.dart';
 import 'package:portrait/classes/videoStateStream.dart';
@@ -93,7 +94,7 @@ class _SlideshowState extends State<Slideshow> {
     preLoadedFiles.clear();
     int thisSlideShowLength = slideShowLength - 1;
     loadFiles(element) {
-      if (element.fileType != 'video') {
+      if (element.fileType != 'video' && element.specialIMG == '') {
         preLoadedFiles.add(element.filePath);
       }
     }
@@ -153,13 +154,22 @@ class _SlideshowState extends State<Slideshow> {
             },
           ),
           items: slideShowControlList.map((file) {
-            if (file.fileType == 'image') {
+            if (file.fileType == 'image' && file.specialIMG == '') {
               return Builder(builder: (BuildContext context) {
                 return Container(
                     height: height,
                     width: width,
                     child: Image.file(Io.File(file.filePath)));
               });
+            } else if (file.fileType == 'image' && file.specialIMG == 'true') {
+              return Container(
+                height: height,
+                width: width,
+                child: Panorama(
+                    onLongPressEnd: _release360(),
+                    animSpeed: 3,
+                    child: Image.file(Io.File(file.filePath))),
+              );
             } else {
               return Builder(builder: (BuildContext context) {
                 return Container(
@@ -195,7 +205,7 @@ class _SlideshowState extends State<Slideshow> {
       await Future.delayed(Duration(milliseconds: 1000));
       _canChangePage(index);
     } else {
-      await Future.delayed(Duration(seconds: 10));
+      await Future.delayed(Duration(seconds: 45));
       _canChangePage(index);
     }
   }
@@ -246,5 +256,9 @@ class _SlideshowState extends State<Slideshow> {
       preLoadFiles();
       preLoadOnIndexChangeRunning = false;
     }
+  }
+
+  _release360() {
+    userPressing = false;
   }
 }
