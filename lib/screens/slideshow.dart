@@ -40,13 +40,14 @@ class _SlideshowState extends State<Slideshow> {
   void dispose() {
     // TODO: implement dispose
     userQuitedSlideShow = true;
-    SystemChrome.setEnabledSystemUIOverlays([SystemUiOverlay.top]);
+    SystemChrome.setEnabledSystemUIOverlays(
+        [SystemUiOverlay.top, SystemUiOverlay.bottom]);
     super.dispose();
   }
 
   @override
   void initState() {
-    SystemChrome.setEnabledSystemUIOverlays([SystemUiOverlay.bottom]);
+    SystemChrome.setEnabledSystemUIOverlays([]);
     slideShowControlList = widget.slideShowList;
     slideShowLength = slideShowControlList.length;
     _nextPage(slideShowControlList[0], 0);
@@ -188,21 +189,23 @@ class _SlideshowState extends State<Slideshow> {
     String fileType = file.fileType;
     if (fileType == 'video') {
       VideoStateStream videoStateStream = VideoStateStream();
-      VideoStateStream thisVideoStream;
       actualVideoStream = videoStateStream;
-      thisVideoStream = actualVideoStream;
+
       while (actualVideoStream == null) {
         await Future.delayed(Duration(milliseconds: 500));
       }
+      print('value of y $y');
       actualVideoStream.getVideoStateStream.listen((event) {
+        print('---------------got $event');
         if (event == 'BetterPlayerEventType.finished') {
           y = 'BetterPlayerEventType.finished';
         }
       });
-      while (x != y && actualVideoStream == thisVideoStream) {
+      while (x != y) {
         await Future.delayed(Duration(milliseconds: 500));
       }
       await Future.delayed(Duration(milliseconds: 1000));
+      print('call change');
       _canChangePage(index);
     } else {
       await Future.delayed(Duration(seconds: 45));
@@ -233,7 +236,6 @@ class _SlideshowState extends State<Slideshow> {
     //Se o index da chamada ainda for o mesmo index do carrosel pula de página
     if (userQuitedSlideShow == false) {
       if (index == actualPageIndex) {
-        SystemChrome.setEnabledSystemUIOverlays([SystemUiOverlay.bottom]);
         setState(() {});
         _carouselController
             .nextPage(duration: Duration(milliseconds: 800))

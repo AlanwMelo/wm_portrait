@@ -526,7 +526,16 @@ class _OpenListState extends State<OpenList> {
           int videoAux = file.videoDuration.toString().indexOf('.');
           videoLength = file.videoDuration.toString().substring(0, videoAux);
           type = 'video';
-          getFileOrientation(info.orientation);
+
+          if (info.orientation == 0) {
+            if (info.width > info.height) {
+              fileOrientation = 'landscape';
+            } else {
+              fileOrientation = 'portrait';
+            }
+          }else{
+            getFileOrientation(info.orientation);
+          }
 
           await dbManager.insertFileIntoList(
               widget.listName,

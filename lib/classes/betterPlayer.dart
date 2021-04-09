@@ -20,10 +20,8 @@ class _MyBetterPlayerState extends State<MyBetterPlayer> {
   BetterPlayerController _betterPlayerController;
 
   @override
-  dispose(){
+  dispose() {
     // TODO: implement dispose
-    widget.videoStreamController.updateVideoState
-        .add(BetterPlayerEventType.finished.toString());
     super.dispose();
   }
 
