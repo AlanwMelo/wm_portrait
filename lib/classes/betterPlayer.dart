@@ -41,6 +41,10 @@ class _MyBetterPlayerState extends State<MyBetterPlayer> {
         betterPlayerDataSource: betterPlayerDataSource);
 
     _betterPlayerController.addEventsListener((event) async {
+      if (event.betterPlayerEventType == BetterPlayerEventType.exception) {
+        await Future.delayed(Duration(seconds: 1));
+        _betterPlayerController.retryDataSource();
+      }
       if (event.betterPlayerEventType == BetterPlayerEventType.finished) {
         widget.videoStreamController.updateVideoState
             .add('${event.betterPlayerEventType}');

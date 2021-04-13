@@ -16,7 +16,7 @@ import 'package:portrait/classes/appColors.dart';
 import 'package:portrait/classes/classes.dart';
 import 'package:portrait/db/dbManager.dart';
 import 'package:portrait/screens/slideshow.dart';
-import 'package:thumbnails/thumbnails.dart' as videoThumb;
+import 'package:video_compress/video_compress.dart';
 
 class OpenList extends StatefulWidget {
   final String listName;
@@ -42,7 +42,6 @@ class _OpenListState extends State<OpenList> {
   List<FileSystemEntity> imagesVideosInDir = [];
 
   //Variáveis para a barra de carregamento
-  double _valueOfLoadingIndicator = 0;
   int _actualListTotal = 0;
   int _actualListProcessed = 0;
   bool loadingFiles = false;
@@ -367,8 +366,6 @@ class _OpenListState extends State<OpenList> {
         filesList.add(ListOfFiles(file.path, file.name, 'video', '', '', ''));
         print('actual $_actualListProcessed total $_actualListTotal');
         _actualListProcessed = _actualListProcessed + 1;
-        _valueOfLoadingIndicator =
-            (_actualListProcessed / _actualListTotal).toDouble();
         setState(() {
           if (_actualListProcessed == _actualListTotal) {
             _actualListProcessed = 0;
@@ -436,12 +433,6 @@ class _OpenListState extends State<OpenList> {
           file['FileOrientation'],
           file['SpecialIMG']));
 
-      print(file['FilePath']);
-      print(file['FileName']);
-      print(file['FileType']);
-      print(file['VideoDuration']);
-      print(file['FileOrientation']);
-      print(file['SpecialIMG']);
       setState(() {});
     });
   }
@@ -506,6 +497,7 @@ class _OpenListState extends State<OpenList> {
       await Future.forEach(
           filesInDir.sublist(loadFromListStart - 1, loadFromListEnd),
           (file) async {
+        bool videoError = false;
         String fileOrientation;
         String videoLength = '';
         String type;
@@ -533,7 +525,7 @@ class _OpenListState extends State<OpenList> {
             } else {
               fileOrientation = 'portrait';
             }
-          }else{
+          } else {
             getFileOrientation(info.orientation);
           }
 
@@ -548,16 +540,20 @@ class _OpenListState extends State<OpenList> {
               '',
               DateTime.now().millisecondsSinceEpoch);
 
-          var apiThumb = await videoThumb.Thumbnails.getThumbnail(
-              thumbnailFolder: '$listPath/',
-              // creates the specified path if it doesnt exist
-              videoFile: '$result/${file.title}',
-              imageType: videoThumb.ThumbFormat.JPEG,
-              quality: 30);
+          final thumbnailFile =
+              await VideoCompress.getFileThumbnail(videoFilePath,
+                      quality: 30, // default(100)
+                      position: 0 // default(-1)
+                      )
+                  .onError((error, stackTrace) {
+            print('Error --->>>> ${file.title}');
+            dbManager.deleteFileOfList(widget.listName, file.title);
+            videoError = true;
+          });
 
-          //Renomeia o thumb criado pela API
-          File(apiThumb)
-              .renameSync(apiThumb.replaceAll(listPath, '${listPath}thumb_'));
+          if (videoError == false) {
+            thumbnailFile.copy('$listPath/thumb_${file.title}');
+          }
         } else {
           getFileOrientation(file.orientation);
           type = 'image';
@@ -589,15 +585,15 @@ class _OpenListState extends State<OpenList> {
           File('$listPath/thumb_${file.title}').writeAsBytes(thumb);
         }
 
-        filesList.add(ListOfFiles('$result/${file.title}', file.title, type,
-            videoLength, fileOrientation, specialIMG));
+        if (videoError == false) {
+          filesList.add(ListOfFiles('$result/${file.title}', file.title, type,
+              videoLength, fileOrientation, specialIMG));
+        }
         _actualListProcessed = _actualListProcessed + 1;
         tweenBegin = tweenEnd;
         tweenEnd = _actualListProcessed / _actualListTotal;
-        _valueOfLoadingIndicator = _actualListProcessed / _actualListTotal;
+        setState(() {});
       });
-
-      setState(() {});
 
       sublistStart = sublistEnd + 1;
       sublistEnd = sublistStart + 49;
@@ -606,7 +602,6 @@ class _OpenListState extends State<OpenList> {
     }
 
     setState(() {
-      _valueOfLoadingIndicator = 0;
       tweenEnd = 0;
       tweenBegin = 0;
       _actualListTotal = 0;
@@ -678,7 +673,17 @@ class _OpenListState extends State<OpenList> {
 
   arcRightButton() {
     return GestureDetector(
-      onTap: () {},
+      onTap: () {
+        filesList.sort((a, b) {
+          int indexOfA = a.fileName.indexOf('_');
+          int indexOfB = b.fileName.indexOf('_');
+
+          return a.fileName
+              .substring(indexOfA + 1)
+              .compareTo(b.fileName.substring(indexOfB + 1));
+        });
+        setState(() {});
+      },
       child: Container(
           margin: EdgeInsets.only(top: 12),
           child: Icon(Icons.workspaces_outline,

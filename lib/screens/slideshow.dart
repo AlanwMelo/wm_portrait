@@ -4,8 +4,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:panorama/panorama.dart';
+import 'package:portrait/classes/betterPlayer.dart';
 import 'package:portrait/classes/classes.dart';
-import 'file:///C:/Users/AlanWillianMelo/AndroidStudioProjects/portrait/lib/classes/betterPlayer.dart';
 import 'package:portrait/classes/videoStateStream.dart';
 
 class Slideshow extends StatefulWidget {
@@ -102,7 +102,7 @@ class _SlideshowState extends State<Slideshow> {
 
     int auxCounter = 0;
 
-    for (int index = actualPageIndex; index <= actualPageIndex + 2; index++) {
+    for (int index = actualPageIndex; index <= actualPageIndex + 1; index++) {
       if (index > thisSlideShowLength) {
         loadFiles(slideShowControlList[auxCounter]);
         auxCounter++;
@@ -112,7 +112,7 @@ class _SlideshowState extends State<Slideshow> {
     }
     auxCounter = 0;
 
-    for (int index = actualPageIndex - 2; index <= actualPageIndex; index++) {
+    for (int index = actualPageIndex - 1; index <= actualPageIndex; index++) {
       if (index < 0) {
         loadFiles(slideShowControlList[thisSlideShowLength - auxCounter]);
         auxCounter++;
@@ -194,9 +194,7 @@ class _SlideshowState extends State<Slideshow> {
       while (actualVideoStream == null) {
         await Future.delayed(Duration(milliseconds: 500));
       }
-      print('value of y $y');
       actualVideoStream.getVideoStateStream.listen((event) {
-        print('---------------got $event');
         if (event == 'BetterPlayerEventType.finished') {
           y = 'BetterPlayerEventType.finished';
         }
@@ -251,7 +249,7 @@ class _SlideshowState extends State<Slideshow> {
   preLoadOnIndexChange(int index) async {
     if (preLoadOnIndexChangeRunning == false) {
       preLoadOnIndexChangeRunning = true;
-      while (preLoadOnIndexChangeCounter <= 2) {
+      while (preLoadOnIndexChangeCounter <= 1) {
         preLoadOnIndexChangeCounter = preLoadOnIndexChangeCounter + 1;
         await Future.delayed(Duration(seconds: 1));
       }
