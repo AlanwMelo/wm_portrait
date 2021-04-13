@@ -49,6 +49,7 @@ dependencies:
   clippy_flutter: ^1.1.1
   panorama: ^0.4.0
   video_compress: ^3.0.0
+  wakelock: ^0.4.0
 
 dev_dependencies:
   flutter_test:

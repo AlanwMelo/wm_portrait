@@ -7,11 +7,14 @@ import 'package:panorama/panorama.dart';
 import 'package:portrait/classes/betterPlayer.dart';
 import 'package:portrait/classes/classes.dart';
 import 'package:portrait/classes/videoStateStream.dart';
+import 'package:wakelock/wakelock.dart';
 
 class Slideshow extends StatefulWidget {
   final List<ListOfFiles> slideShowList;
+  final int startIndex;
 
-  const Slideshow({Key key, this.slideShowList}) : super(key: key);
+  const Slideshow({Key key, this.slideShowList, this.startIndex})
+      : super(key: key);
 
   @override
   State<StatefulWidget> createState() => _SlideshowState();
@@ -31,7 +34,6 @@ class _SlideshowState extends State<Slideshow> {
   //video
   VideoStateStream actualVideoStream;
   List carouselList = [];
-  int slideIndex = 0;
   Duration autoPlayDuration = Duration(seconds: 5);
 
   List preLoadedFiles = [];
@@ -39,6 +41,8 @@ class _SlideshowState extends State<Slideshow> {
   @override
   void dispose() {
     // TODO: implement dispose
+    // Libera o bloqueio de tela.
+    Wakelock.disable();
     userQuitedSlideShow = true;
     SystemChrome.setEnabledSystemUIOverlays(
         [SystemUiOverlay.top, SystemUiOverlay.bottom]);
@@ -47,11 +51,14 @@ class _SlideshowState extends State<Slideshow> {
 
   @override
   void initState() {
+    // Impede que a tela seja bloqueada.
+    Wakelock.enable();
     SystemChrome.setEnabledSystemUIOverlays([]);
     slideShowControlList = widget.slideShowList;
     slideShowLength = slideShowControlList.length;
-    _nextPage(slideShowControlList[0], 0);
-    actualPageIndex = 0;
+    //Carrega a lista a partir do index informado na contrução da tela
+    _nextPage(slideShowControlList[widget.startIndex], widget.startIndex);
+    actualPageIndex = widget.startIndex;
     preLoadFiles();
     // TODO: implement initState
     super.initState();
@@ -63,6 +70,7 @@ class _SlideshowState extends State<Slideshow> {
     return Scaffold(
         body: Stack(
       children: [
+        //Container para esconder as imagens pré carregadas (criadas para suavizar a transição entre imagens)
         Container(
           child: ListView.builder(
               itemCount: preLoadedFiles.length,
@@ -144,6 +152,7 @@ class _SlideshowState extends State<Slideshow> {
             enlargeCenterPage: false,
             autoPlay: false,
             aspectRatio: 2.0,
+            initialPage: widget.startIndex,
             enlargeStrategy: CenterPageEnlargeStrategy.height,
             onPageChanged: (index, reason) {
               setState(() {

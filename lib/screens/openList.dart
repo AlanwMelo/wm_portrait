@@ -130,102 +130,112 @@ class _OpenListState extends State<OpenList> {
                               String thumbImg =
                                   '${listPath}thumb_${fileNameWithoutExtension(fileName: filesList[index].fileName)}jpg';
                               bool loadingFile = File(thumbImg).existsSync();
-                              return ClipRRect(
-                                borderRadius: BorderRadius.only(
-                                    topRight: Radius.circular(10),
-                                    bottomLeft: Radius.circular(10),
-                                    bottomRight: Radius.circular(10),
-                                    topLeft: Radius.circular(10)),
-                                child: Column(
-                                  children: [
-                                    Expanded(
-                                      child: Container(
-                                        color: Colors.lightBlueAccent
-                                            .withOpacity(0.08),
-                                        child: loadingFile == true
-                                            ? Stack(
-                                                fit: StackFit.expand,
-                                                children: [
-                                                    Image.file(
-                                                        new File(thumbImg),
-                                                        fit: BoxFit.cover),
-                                                    Container(
-                                                        child: Column(
-                                                            mainAxisAlignment:
-                                                                MainAxisAlignment
-                                                                    .end,
-                                                            children: [
-                                                          filesList[index]
-                                                                      .fileType ==
-                                                                  'video'
-                                                              ? Row(
-                                                                  children: [
-                                                                    Container(
-                                                                      color: Colors
-                                                                          .black
-                                                                          .withOpacity(
-                                                                              0.3),
-                                                                      margin: EdgeInsets.only(
-                                                                          left:
-                                                                              2,
-                                                                          right:
-                                                                              2),
-                                                                      child: Icon(
-                                                                          Icons
-                                                                              .play_circle_fill,
-                                                                          size:
-                                                                              16,
-                                                                          color:
-                                                                              Colors.white),
-                                                                    ),
-                                                                    Text(
-                                                                      filesList[
-                                                                              index]
-                                                                          .videoLength,
-                                                                      style:
-                                                                          TextStyle(
+                              return GestureDetector(
+                                onLongPress: () async {
+                                  await Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) => Slideshow(
+                                                slideShowList: filesList,
+                                                startIndex: index,
+                                              )));
+                                },
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.only(
+                                      topRight: Radius.circular(10),
+                                      bottomLeft: Radius.circular(10),
+                                      bottomRight: Radius.circular(10),
+                                      topLeft: Radius.circular(10)),
+                                  child: Column(
+                                    children: [
+                                      Expanded(
+                                        child: Container(
+                                          color: Colors.lightBlueAccent
+                                              .withOpacity(0.08),
+                                          child: loadingFile == true
+                                              ? Stack(
+                                                  fit: StackFit.expand,
+                                                  children: [
+                                                      Image.file(
+                                                          new File(thumbImg),
+                                                          fit: BoxFit.cover),
+                                                      Container(
+                                                          child: Column(
+                                                              mainAxisAlignment:
+                                                                  MainAxisAlignment
+                                                                      .end,
+                                                              children: [
+                                                            filesList[index]
+                                                                        .fileType ==
+                                                                    'video'
+                                                                ? Row(
+                                                                    children: [
+                                                                      Container(
                                                                         color: Colors
-                                                                            .white,
-                                                                        backgroundColor: Colors
                                                                             .black
                                                                             .withOpacity(0.3),
+                                                                        margin: EdgeInsets.only(
+                                                                            left:
+                                                                                2,
+                                                                            right:
+                                                                                2),
+                                                                        child: Icon(
+                                                                            Icons
+                                                                                .play_circle_fill,
+                                                                            size:
+                                                                                16,
+                                                                            color:
+                                                                                Colors.white),
                                                                       ),
-                                                                    ),
-                                                                  ],
-                                                                )
-                                                              : Container(),
-                                                          Container(
-                                                              color: Colors
-                                                                  .black
-                                                                  .withOpacity(
-                                                                      0.3),
-                                                              height: 20,
-                                                              child: Row(
-                                                                children: [
-                                                                  Expanded(
-                                                                    child: Container(
-                                                                        margin: EdgeInsets.only(left: 4),
-                                                                        child: filesList[index].fileName.length >= 14
-                                                                            ? Text(
-                                                                                filesList[index].fileName,
-                                                                                overflow: TextOverflow.ellipsis,
-                                                                                style: TextStyle(color: Colors.white),
-                                                                              )
-                                                                            : Text(filesList[index].fileName, style: TextStyle(color: Colors.white))),
+                                                                      Text(
+                                                                        filesList[index]
+                                                                            .videoLength,
+                                                                        style:
+                                                                            TextStyle(
+                                                                          color:
+                                                                              Colors.white,
+                                                                          backgroundColor: Colors
+                                                                              .black
+                                                                              .withOpacity(0.3),
+                                                                        ),
+                                                                      ),
+                                                                    ],
                                                                   )
-                                                                ],
-                                                              ))
-                                                        ]))
-                                                  ])
-                                            : Center(
-                                                child: Icon(
-                                                    Icons.image_search_outlined,
-                                                    size: 40,
-                                                    color: Colors.black
-                                                        .withOpacity(0.4))),
+                                                                : Container(),
+                                                            Container(
+                                                                color: Colors
+                                                                    .black
+                                                                    .withOpacity(
+                                                                        0.3),
+                                                                height: 20,
+                                                                child: Row(
+                                                                  children: [
+                                                                    Expanded(
+                                                                      child: Container(
+                                                                          margin: EdgeInsets.only(left: 4),
+                                                                          child: filesList[index].fileName.length >= 14
+                                                                              ? Text(
+                                                                                  filesList[index].fileName,
+                                                                                  overflow: TextOverflow.ellipsis,
+                                                                                  style: TextStyle(color: Colors.white),
+                                                                                )
+                                                                              : Text(filesList[index].fileName, style: TextStyle(color: Colors.white))),
+                                                                    )
+                                                                  ],
+                                                                ))
+                                                          ]))
+                                                    ])
+                                              : Center(
+                                                  child: Icon(
+                                                      Icons
+                                                          .image_search_outlined,
+                                                      size: 40,
+                                                      color: Colors.black
+                                                          .withOpacity(0.4))),
+                                        ),
                                       ),
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
                               );
                             },
@@ -263,7 +273,8 @@ class _OpenListState extends State<OpenList> {
                                 child: Center(
                                   child: Container(
                                     child: Text(
-                                      _actualListTotal & _actualListProcessed !=
+                                      //Se o valor da lista atual for diferente de zero retorna a porcentagem já processada
+                                      _actualListProcessed !=
                                               0
                                           ? '${((_actualListProcessed / _actualListTotal) * 100).round()}%'
                                           : '0%',
@@ -442,6 +453,12 @@ class _OpenListState extends State<OpenList> {
   }
 
   prepareToLoadAllFromFolder() async {
+    //Zera os valores das animações de carregamento
+    tweenEnd = 0;
+    tweenBegin = 0;
+    _actualListTotal = 0;
+    _actualListProcessed = 0;
+    imagesVideosInDir.clear();
     await dirSelector().then((value) async {
       if (value == true) {
         ///Foi necessário para resolver o problema da tela preta após seleção
@@ -552,7 +569,8 @@ class _OpenListState extends State<OpenList> {
           });
 
           if (videoError == false) {
-            thumbnailFile.copy('$listPath/thumb_${file.title}');
+            thumbnailFile.copy(
+                '$listPath/thumb_${fileNameWithoutExtension(fileName: file.title)}jpg');
           }
         } else {
           getFileOrientation(file.orientation);
@@ -602,12 +620,7 @@ class _OpenListState extends State<OpenList> {
     }
 
     setState(() {
-      tweenEnd = 0;
-      tweenBegin = 0;
-      _actualListTotal = 0;
-      _actualListProcessed = 0;
       loadingFiles = !loadingFiles;
-      imagesVideosInDir.clear();
     });
   }
 
@@ -661,6 +674,7 @@ class _OpenListState extends State<OpenList> {
             MaterialPageRoute(
                 builder: (context) => Slideshow(
                       slideShowList: filesList,
+                      startIndex: 0,
                     )));
       },
       child: Container(
