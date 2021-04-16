@@ -15,6 +15,7 @@ import 'package:photo_manager/photo_manager.dart';
 import 'package:portrait/classes/appColors.dart';
 import 'package:portrait/classes/classes.dart';
 import 'package:portrait/db/dbManager.dart';
+import 'package:portrait/screens/newSlideShow.dart';
 import 'package:portrait/screens/slideshow.dart';
 import 'package:video_compress/video_compress.dart';
 
@@ -135,7 +136,7 @@ class _OpenListState extends State<OpenList> {
                                   await Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                          builder: (context) => Slideshow(
+                                          builder: (context) => NewSlideShow(
                                                 slideShowList: filesList,
                                                 startIndex: index,
                                               )));
@@ -672,10 +673,10 @@ class _OpenListState extends State<OpenList> {
         await Navigator.push(
             context,
             MaterialPageRoute(
-                builder: (context) => Slideshow(
-                      slideShowList: filesList,
-                      startIndex: 0,
-                    )));
+                builder: (context) => NewSlideShow(
+                  slideShowList: filesList,
+                  startIndex: 0,
+                )));
       },
       child: Container(
         margin: EdgeInsets.only(bottom: 8),
@@ -684,6 +685,25 @@ class _OpenListState extends State<OpenList> {
       ),
     );
   }
+
+  /*arcCenterButton() {
+    return GestureDetector(
+      onTap: () async {
+        await Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) => Slideshow(
+                  slideShowList: filesList,
+                  startIndex: 0,
+                )));
+      },
+      child: Container(
+        margin: EdgeInsets.only(bottom: 8),
+        child: Icon(Icons.play_circle_outline,
+            size: 40, color: AppColorsDialga().white()),
+      ),
+    );
+  }*/
 
   arcRightButton() {
     return GestureDetector(
