@@ -3,10 +3,12 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_vlc_player/flutter_vlc_player.dart';
 import 'package:panorama/panorama.dart';
 import 'package:portrait/classes/betterPlayer.dart';
 import 'package:portrait/classes/classes.dart';
 import 'package:portrait/classes/videoStateStream.dart';
+import 'package:portrait/classes/vlcPlayer.dart';
 import 'package:wakelock/wakelock.dart';
 
 class Slideshow extends StatefulWidget {
@@ -33,6 +35,7 @@ class _SlideshowState extends State<Slideshow> {
 
   //video
   VideoStateStream actualVideoStream;
+  VlcPlayerController _vlcController;
   List carouselList = [];
   Duration autoPlayDuration = Duration(seconds: 5);
 
@@ -91,11 +94,16 @@ class _SlideshowState extends State<Slideshow> {
     ));
   }
 
-  betterPlayer(String filePath, String orientation) {
-    return MyBetterPlayer(
+  vlcPlayer(String filePath, String orientation) {
+    _vlcController = VlcPlayerController.file(Io.File(filePath), autoInitialize: true,
+        hwAcc: HwAcc.AUTO, autoPlay: true, options: VlcPlayerOptions());
+
+    return MyVlcPlayer(
       path: filePath,
       orientation: orientation,
-      videoStreamController: actualVideoStream,
+      vlcController: _vlcController,
+      videoStateStream: actualVideoStream,
+      key: UniqueKey(),
     );
   }
 
@@ -154,7 +162,7 @@ class _SlideshowState extends State<Slideshow> {
             aspectRatio: 2.0,
             initialPage: widget.startIndex,
             enlargeStrategy: CenterPageEnlargeStrategy.height,
-            onPageChanged: (index, reason) {
+            onPageChanged: (index, reason) async {
               setState(() {
                 actualPageIndex = index;
                 preLoadOnIndexChangeCounter = 0;
@@ -181,9 +189,10 @@ class _SlideshowState extends State<Slideshow> {
                     child: Image.file(Io.File(file.filePath))),
               );
             } else {
+              print('starting vlc? ${file.fileName}');
               return Builder(builder: (BuildContext context) {
                 return Container(
-                    child: betterPlayer(file.filePath, file.fileOrientation));
+                    child: vlcPlayer(file.filePath, file.fileOrientation));
               });
             }
           }).toList(),
@@ -193,24 +202,28 @@ class _SlideshowState extends State<Slideshow> {
   }
 
   _nextPage(ListOfFiles file, int index) async {
-    var x = 'BetterPlayerEventType.finished';
-    var y = '';
     String fileType = file.fileType;
+    bool canContinue = false;
     if (fileType == 'video') {
       VideoStateStream videoStateStream = VideoStateStream();
       actualVideoStream = videoStateStream;
 
       while (actualVideoStream == null) {
+        print('while null');
         await Future.delayed(Duration(milliseconds: 500));
       }
-      actualVideoStream.getVideoStateStream.listen((event) {
-        if (event == 'BetterPlayerEventType.finished') {
-          y = 'BetterPlayerEventType.finished';
+
+      print('here');
+      actualVideoStream.getVideoStateStream.listen((event) async {
+        if (event.contains(file.fileName) && event.contains('done')) {
+          print('video ended in Slideshow');
+          await Future.delayed(Duration(seconds: 1));
+          canContinue = true;
         }
       });
-      while (x != y) {
-        await Future.delayed(Duration(milliseconds: 500));
-      }
+
+      while(!canContinue){await Future.delayed(Duration(milliseconds: 500));}
+
       await Future.delayed(Duration(milliseconds: 1000));
       print('call change');
       _canChangePage(index);
