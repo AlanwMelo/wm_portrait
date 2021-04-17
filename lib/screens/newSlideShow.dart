@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_swiper/flutter_swiper.dart';
 import 'package:flutter_vlc_player/flutter_vlc_player.dart';
+import 'package:panorama/panorama.dart';
 import 'package:portrait/classes/classes.dart';
 import 'package:portrait/classes/videoStateStream.dart';
 import 'package:portrait/classes/vlcPlayer.dart';
@@ -13,7 +14,8 @@ class NewSlideShow extends StatefulWidget {
   final List<ListOfFiles> slideShowList;
   final int startIndex;
 
-  const NewSlideShow({Key key, this.slideShowList, this.startIndex}) : super(key: key);
+  const NewSlideShow({Key key, this.slideShowList, this.startIndex})
+      : super(key: key);
 
   @override
   State<StatefulWidget> createState() => _NewSlideShowState();
@@ -185,7 +187,9 @@ class _NewSlideShowState extends State<NewSlideShow> {
         }
       });
 
-      while(!canContinue){await Future.delayed(Duration(milliseconds: 500));}
+      while (!canContinue) {
+        await Future.delayed(Duration(milliseconds: 500));
+      }
 
       await Future.delayed(Duration(milliseconds: 500));
       _canChangePage(index);
@@ -211,8 +215,25 @@ class _NewSlideShowState extends State<NewSlideShow> {
 
   slideShowItem(ListOfFiles slideShowListItem, int fileIndex) {
     // Retorna a imagem ou vídeo
-    if (slideShowListItem.fileType == 'image') {
+    if (slideShowListItem.fileType == 'image' &&
+        slideShowListItem.specialIMG == '') {
       return Image.file(File(slideShowListItem.filePath));
+    } else if (slideShowListItem.fileType == 'image' &&
+        slideShowListItem.specialIMG == 'true') {
+      bool panoramaRunning = false;
+      if (actualPageIndex == fileIndex) {
+        print('Show Panorama');
+        panoramaRunning = true;
+      } else {
+        panoramaRunning = false;
+      }
+      return Container(
+          child: panoramaRunning == true
+              ? Panorama(
+                  onLongPressEnd: _release360(),
+                  animSpeed: 3,
+                  child: Image.file(File(slideShowListItem.filePath)))
+              : Container());
     } else {
       bool videoRunning = false;
       VlcPlayerController _thisVlcController;
@@ -252,5 +273,9 @@ class _NewSlideShowState extends State<NewSlideShow> {
       videoStateStream: actualVideoStream,
       key: UniqueKey(),
     );
+  }
+
+  _release360() {
+    userPressing = false;
   }
 }
