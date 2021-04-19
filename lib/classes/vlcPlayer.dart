@@ -24,6 +24,14 @@ class MyVlcPlayer extends StatefulWidget {
 class _MyVlcPlayerState extends State<MyVlcPlayer> {
   VlcPlayerController _vlcPlayerController;
 
+
+  @override
+  dispose(){
+    /// Encerra corretamente o vídeo
+    vlcControllerDisposer();
+    super.dispose();
+  }
+
   @override
   void initState() {
     // TODO: implement initState
@@ -61,5 +69,10 @@ class _MyVlcPlayerState extends State<MyVlcPlayer> {
         }
       }
     });
+  }
+
+  Future<void> vlcControllerDisposer() async {
+    await widget.vlcController.stopRendererScanning();
+    await widget.vlcController.dispose();
   }
 }
