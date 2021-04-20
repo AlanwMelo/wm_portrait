@@ -8,7 +8,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:flutter_video_info/flutter_video_info.dart';
-import 'package:panorama/panorama.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:photo_manager/photo_manager.dart';
@@ -21,10 +20,9 @@ import 'package:video_compress/video_compress.dart';
 
 class OpenList extends StatefulWidget {
   final String listName;
-  final double screenSize;
   final String appName;
 
-  const OpenList({Key key, this.listName, this.screenSize, this.appName})
+  const OpenList({Key key, this.listName, this.appName})
       : super(key: key);
 
   @override
