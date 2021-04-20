@@ -24,9 +24,8 @@ class MyVlcPlayer extends StatefulWidget {
 class _MyVlcPlayerState extends State<MyVlcPlayer> {
   VlcPlayerController _vlcPlayerController;
 
-
   @override
-  dispose(){
+  dispose() {
     /// Encerra corretamente o vídeo
     vlcControllerDisposer();
     super.dispose();
@@ -36,43 +35,88 @@ class _MyVlcPlayerState extends State<MyVlcPlayer> {
   void initState() {
     // TODO: implement initState
     _vlcPlayerController = widget.vlcController;
-    playing();
+    playingControl();
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
-    return VlcPlayer(
-      aspectRatio: 16 / 9,
-      controller: _vlcPlayerController,
-      placeholder: Center(child: CircularProgressIndicator()),
+    return Container(
+      child: Stack(
+        children: [
+          Container(
+            height: MediaQuery.of(context).size.height,
+            child: VlcPlayer(
+              aspectRatio: 16 / 9,
+              controller: _vlcPlayerController,
+              placeholder: Center(child: CircularProgressIndicator()),
+            ),
+          ),
+          GestureDetector(
+            onTap: () {
+              setState(() {
+                _vlcPlayerController.pause();
+              });
+            },
+            child: Container(
+              height: MediaQuery.of(context).size.height,
+              width: MediaQuery.of(context).size.width,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  Container(
+                    height: 100,
+                    color: Colors.green,
+                  )
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
-  playing() {
+  playingControl() async {
     _vlcPlayerController.addOnInitListener(() async {
-      bool playing = true;
-      var position1;
-      var position2;
-      while (playing) {
-        await Future.delayed(Duration(milliseconds: 1000));
-        position2 = position1;
-        position1 = await _vlcPlayerController.getPosition().catchError((onError){
-          if(onError.toString().contains('getTime()\' on a null object reference')){
-            print('Vídeo pulado antes do fim');
+      Duration videoDuration = Duration(seconds: 30);
+      Duration videoPosition = Duration(seconds: 1);
+      bool timeToBreak = false;
+
+      print(videoDuration);
+      while ((videoDuration.inSeconds - videoPosition.inSeconds) > 1) {
+        if(timeToBreak){
+          print('Time to Break');
+          break;
+        }
+        var durationHelper =
+            await _vlcPlayerController.getDuration().catchError((onError) {
+              print('<<<<<<<<<<< $onError');
+
+        });
+        var positionHelper =
+            await _vlcPlayerController.getPosition().catchError((onError) {
+          print('>>>>>>>>>>>>>>>>. $onError');
+          if (onError.toString().contains('was called on a disposed VlcPlayerController')) {
+            timeToBreak = true;
           }
         });
-        if (position2 == position1) {
-          playing = false;
-          print('Video ended in VLC Player');
-          widget.videoStateStream.updateVideoState.add('${widget.path} done');
+        if (durationHelper != null && positionHelper != null) {
+          videoDuration = durationHelper;
+          videoPosition = positionHelper;
+        } else {
+          await Future.delayed(Duration(milliseconds: 1000));
         }
       }
+
+      await Future.delayed(Duration(seconds: 1));
+      print('Video ended in VLC Player');
+      widget.videoStateStream.updateVideoState.add('${widget.path} done');
     });
   }
 
   Future<void> vlcControllerDisposer() async {
-    await widget.vlcController.stopRendererScanning();
+    await widget.vlcController.stopRendererScanning().catchError((onError){});
     await widget.vlcController.dispose();
   }
 }
