@@ -574,7 +574,7 @@ class _OpenListState extends State<OpenList> {
         } else {
           getFileOrientation(file.orientation);
           type = 'image';
-
+//
           Future<Map<String, IfdTag>> data = readExifFromBytes(
               await File('$result/${file.title}').readAsBytes());
           await data.then((data) async {
