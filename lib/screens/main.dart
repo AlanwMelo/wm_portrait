@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:portrait/classes/appColors.dart';
+import 'package:portrait/colorScreen.dart';
 import 'package:portrait/db/dbManager.dart';
 import 'dart:io';
 import 'package:portrait/screens/openList.dart';
@@ -72,15 +73,25 @@ class _MyHomePageState extends State<MyHomePage> {
                           builder: (context) => OpenList(
                               listName: 'thisList',
                               appName: widget.title,
-                              screenSize: MediaQuery.of(context).size.height -
-                                  89.1 -
-                                  //tamanho dos widgets da outra tela
-                                  40)));
+                              )));
                 },
                 child: Container(
                   height: 50,
                   color: Colors.limeAccent,
                   child: Text("test"),
+                ),
+              ),
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => ColorScreen()));
+                },
+                child: Container(
+                  height: 50,
+                  color: Colors.limeAccent,
+                  child: Text("Colors"),
                 ),
               ),
               testeIMG == null
