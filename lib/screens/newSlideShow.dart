@@ -23,6 +23,10 @@ class NewSlideShow extends StatefulWidget {
 
 class _NewSlideShowState extends State<NewSlideShow> {
   int actualPageIndex = 0;
+  Duration fileDuration = Duration(seconds: 45);
+
+  /// Aguarda 5 segundos para evitar transição caso o usuário volte rapidamente para a ultima foto
+  int sleeper = 0;
 
   /// Controle para saber se o widget ainda está aberto
   bool userQuitedSlideShow = false;
@@ -68,6 +72,7 @@ class _NewSlideShowState extends State<NewSlideShow> {
     _nextPage(slideShowControlList[widget.startIndex], widget.startIndex);
     actualPageIndex = widget.startIndex;
     preLoadFiles();
+    sleeperCounter();
     super.initState();
   }
 
@@ -87,6 +92,7 @@ class _NewSlideShowState extends State<NewSlideShow> {
                 index: widget.startIndex,
                 onIndexChanged: (index) {
                   actualPageIndex = index;
+                  sleeper = 0;
                   preLoadOnIndexChangeCounter = 0;
                   preLoadOnIndexChange(index);
                   _nextPage(slideShowControlList[index], index);
@@ -180,7 +186,9 @@ class _NewSlideShowState extends State<NewSlideShow> {
       }
 
       actualVideoStream.getVideoStateStream.listen((event) async {
-        if (event.contains(file.fileName) && event.contains('done')) {
+        print(event);
+        if (event.contains(file.filePath) &&
+            event.contains('done')) {
           print('video ended in Slideshow');
           await Future.delayed(Duration(seconds: 1));
           canContinue = true;
@@ -190,12 +198,10 @@ class _NewSlideShowState extends State<NewSlideShow> {
       while (!canContinue) {
         await Future.delayed(Duration(milliseconds: 500));
       }
-
-      await Future.delayed(Duration(milliseconds: 500));
       _canChangePage(index);
     } else {
       // Se for uma imagem aguarda o valor do duration
-      await Future.delayed(Duration(seconds: 45));
+      await Future.delayed(fileDuration);
       _canChangePage(index);
     }
   }
@@ -206,8 +212,12 @@ class _NewSlideShowState extends State<NewSlideShow> {
       await Future.delayed(Duration(seconds: 3));
     }
     //Se o index da chamada ainda for o mesmo index do swiper, pula de página
+
+    print('teste');
+    print(actualPageIndex);
+    print(index);
     if (userQuitedSlideShow == false) {
-      if (index == actualPageIndex) {
+      if (index == actualPageIndex && sleeper >= 6) {
         _swiperController.next();
       } else {}
     }
@@ -247,8 +257,8 @@ class _NewSlideShowState extends State<NewSlideShow> {
         videoRunning = true;
         _thisVlcController = VlcPlayerController.file(
             File(slideShowListItem.filePath),
-            autoInitialize: true,
             hwAcc: HwAcc.AUTO,
+            autoInitialize: true,
             autoPlay: true,
             options: VlcPlayerOptions());
       } else {
@@ -277,5 +287,12 @@ class _NewSlideShowState extends State<NewSlideShow> {
 
   _release360() {
     userPressing = false;
+  }
+
+  sleeperCounter() async {
+    while (!userQuitedSlideShow) {
+      await Future.delayed(Duration(seconds: 1));
+      sleeper = sleeper + 1;
+    }
   }
 }
