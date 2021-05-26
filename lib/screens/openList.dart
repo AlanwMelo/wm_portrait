@@ -12,7 +12,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:portrait/classes/appColors.dart';
-import 'package:portrait/classes/classes.dart';
+import 'package:portrait/classes/genericClasses.dart';
 import 'package:portrait/db/dbManager.dart';
 import 'package:portrait/screens/newSlideShow.dart';
 import 'package:portrait/screens/slideshow.dart';
@@ -574,7 +574,7 @@ class _OpenListState extends State<OpenList> {
         } else {
           getFileOrientation(file.orientation);
           type = 'image';
-//
+
           Future<Map<String, IfdTag>> data = readExifFromBytes(
               await File('$result/${file.title}').readAsBytes());
           await data.then((data) async {

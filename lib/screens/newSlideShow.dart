@@ -5,7 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_swiper/flutter_swiper.dart';
 import 'package:flutter_vlc_player/flutter_vlc_player.dart';
 import 'package:panorama/panorama.dart';
-import 'package:portrait/classes/classes.dart';
+import 'package:portrait/classes/genericClasses.dart';
 import 'package:portrait/classes/videoStateStream.dart';
 import 'package:portrait/classes/vlcPlayer.dart';
 import 'package:wakelock/wakelock.dart';
@@ -24,9 +24,6 @@ class NewSlideShow extends StatefulWidget {
 class _NewSlideShowState extends State<NewSlideShow> {
   int actualPageIndex = 0;
   Duration fileDuration = Duration(seconds: 45);
-
-  /// Aguarda 5 segundos para evitar transição caso o usuário volte rapidamente para a ultima foto
-  int sleeper = 0;
 
   /// Controle para saber se o widget ainda está aberto
   bool userQuitedSlideShow = false;
@@ -72,7 +69,6 @@ class _NewSlideShowState extends State<NewSlideShow> {
     _nextPage(slideShowControlList[widget.startIndex], widget.startIndex);
     actualPageIndex = widget.startIndex;
     preLoadFiles();
-    sleeperCounter();
     super.initState();
   }
 
@@ -92,7 +88,6 @@ class _NewSlideShowState extends State<NewSlideShow> {
                 index: widget.startIndex,
                 onIndexChanged: (index) {
                   actualPageIndex = index;
-                  sleeper = 0;
                   preLoadOnIndexChangeCounter = 0;
                   preLoadOnIndexChange(index);
                   _nextPage(slideShowControlList[index], index);
@@ -217,7 +212,7 @@ class _NewSlideShowState extends State<NewSlideShow> {
     print(actualPageIndex);
     print(index);
     if (userQuitedSlideShow == false) {
-      if (index == actualPageIndex && sleeper >= 6) {
+      if (index == actualPageIndex) {
         _swiperController.next();
       } else {}
     }
@@ -289,10 +284,4 @@ class _NewSlideShowState extends State<NewSlideShow> {
     userPressing = false;
   }
 
-  sleeperCounter() async {
-    while (!userQuitedSlideShow) {
-      await Future.delayed(Duration(seconds: 1));
-      sleeper = sleeper + 1;
-    }
-  }
 }
