@@ -1,16 +1,24 @@
-# portrait
+# WM Portrait
 
-A new Flutter application.
+Uma aplicação flutter para utilizar um tablet antigo como porta-retratos digital, incluindo a exibição de imagens, imagens 360 e vídeos.
 
-## Getting Started
+## INFOS
 
-This project is a starting point for a Flutter application.
+Atualmente a aplicação se encontra pronta para uso em casos simples, a tela de porta-retratos e a exibição dos mesmos já estão prontas.
 
-A few resources to get you started if this is your first Flutter project:
+## ISSUES
 
-- [Lab: Write your first Flutter app](https://flutter.dev/docs/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://flutter.dev/docs/cookbook)
+- Tela inicial ainda não desenvolvida.
+- Imagens 4k não são exibidas em versões antigas do Android.
+- Alguns modelos tem problemas com o controlador de vídeo.
+- Se muitas imagens são puladas de uma vez, o controlador do swipper se perde.
 
-For help getting started with Flutter, view our
-[online documentation](https://flutter.dev/docs), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## Em desenvolvimento
+
+Está sendo realizada a migração do betterPlayer para o VLC player, pois ele apresenta melhor performance.
+Ajustes no swipper.
+
+## Next Steps
+
+- Implementação de controladores de brilho, seja por luminosidade ou timer.
+- Ajustes para melhoria de performance no carregamento de imagens/criação de thumbnails.
