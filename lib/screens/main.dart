@@ -24,13 +24,13 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'WG Portrait',
+      title: 'WM Portrait',
       theme: ThemeData(
         primaryColor: AppColorsDialga().primaryColor(),
         accentColor: AppColorsDialga().accentColor(),
         scaffoldBackgroundColor: AppColorsDialga().scaffoldBackGround(),
       ),
-      home: MyHomePage(title: 'WG Portrait'),
+      home: MyHomePage(title: 'WM Portrait'),
     );
   }
 }
