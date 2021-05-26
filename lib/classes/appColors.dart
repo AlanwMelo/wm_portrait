@@ -67,6 +67,7 @@ class AppColorsDialga {
   black() {
     return const Color(0xff414152);
   }
+
   lightColor() {
     return const Color(0xff9cd5f6);
   }
