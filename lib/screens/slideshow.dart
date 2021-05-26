@@ -1,3 +1,5 @@
+/// Não está sendo utilizada, mantenho temporariamente para consultas.
+
 import 'dart:io' as Io;
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/services.dart';
@@ -6,7 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_vlc_player/flutter_vlc_player.dart';
 import 'package:panorama/panorama.dart';
 import 'package:portrait/classes/betterPlayer.dart';
-import 'package:portrait/classes/classes.dart';
+import 'package:portrait/classes/genericClasses.dart';
 import 'package:portrait/classes/videoStateStream.dart';
 import 'package:portrait/classes/vlcPlayer.dart';
 import 'package:wakelock/wakelock.dart';
