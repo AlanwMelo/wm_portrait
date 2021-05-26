@@ -1,3 +1,6 @@
+/// Corretamente configurado mas por motivos de perfomance foi substituido pelo VLC, ao final da implementação do VLC
+/// será apagado
+
 import 'package:better_player/better_player.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
