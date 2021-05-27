@@ -1,4 +1,4 @@
-# WM Portrait
+## WM Portrait
 
 Uma aplicação flutter para utilizar um tablet antigo como porta-retratos digital, incluindo a exibição de imagens, imagens 360 e vídeos.
 
