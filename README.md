@@ -22,5 +22,3 @@ Ajustes no swipper.
 
 - Implementação de controladores de brilho, seja por luminosidade ou timer.
 - Ajustes para melhoria de performance no carregamento de imagens/criação de thumbnails.
-
-Testing new machine
