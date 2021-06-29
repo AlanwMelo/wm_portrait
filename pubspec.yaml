@@ -35,7 +35,7 @@ dependencies:
   flutter_image_compress: ^1.0.0
   flutter_native_image: ^0.0.5+3
   flutter_isolate: ^2.0.0
-  photo_manager: ^1.0.6
+  photo_manager: ^1.2.4
   ping_discover_network: ^0.2.0+1
   wifi: ^0.1.5
   sqflite: ^2.0.0+3

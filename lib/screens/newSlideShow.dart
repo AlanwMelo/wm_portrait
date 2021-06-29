@@ -2,9 +2,11 @@ import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_swiper/flutter_swiper.dart';
 import 'package:flutter_vlc_player/flutter_vlc_player.dart';
 import 'package:panorama/panorama.dart';
+import 'package:portrait/classes/blocManager.dart';
 import 'package:portrait/classes/genericClasses.dart';
 import 'package:portrait/classes/videoStateStream.dart';
 import 'package:portrait/classes/vlcPlayer.dart';
@@ -74,41 +76,44 @@ class _NewSlideShowState extends State<NewSlideShow> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Container(
-        color: Colors.black,
-        child: Center(
-          child: Container(
-            child: GestureDetector(
-              onLongPress: () {
-                print('hold');
-              },
-              child: Swiper(
-                controller: _swiperController,
-                index: widget.startIndex,
-                onIndexChanged: (index) {
-                  actualPageIndex = index;
-                  preLoadOnIndexChangeCounter = 0;
-                  preLoadOnIndexChange(index);
-                  _nextPage(slideShowControlList[index], index);
+    return BlocProvider<VideoCubit>(
+      create: (context) => VideoCubit(),
+      child: Scaffold(
+        body: Container(
+          color: Colors.black,
+          child: Center(
+            child: Container(
+              child: GestureDetector(
+                onLongPress: () {
+                  print('hold');
                 },
-                itemBuilder: (BuildContext context, int index) {
-                  return Container(
-                    child: Center(
-                      child: Wrap(
-                        children: [
-                          Container(
-                            //Deixando o Container somente com a altura definida as imagens se ajustam tanto no modo retrato como no paisagem
-                            height: MediaQuery.of(context).size.height,
-                            child: slideShowItem(
-                                widget.slideShowList[index], index),
-                          )
-                        ],
+                child: Swiper(
+                  controller: _swiperController,
+                  index: widget.startIndex,
+                  onIndexChanged: (index) {
+                    actualPageIndex = index;
+                    preLoadOnIndexChangeCounter = 0;
+                    preLoadOnIndexChange(index);
+                    _nextPage(slideShowControlList[index], index);
+                  },
+                  itemBuilder: (BuildContext context, int index) {
+                    return Container(
+                      child: Center(
+                        child: Wrap(
+                          children: [
+                            Container(
+                              //Deixando o Container somente com a altura definida as imagens se ajustam tanto no modo retrato como no paisagem
+                              height: MediaQuery.of(context).size.height,
+                              child: slideShowItem(
+                                  widget.slideShowList[index], index),
+                            )
+                          ],
+                        ),
                       ),
-                    ),
-                  );
-                },
-                itemCount: widget.slideShowList.length,
+                    );
+                  },
+                  itemCount: widget.slideShowList.length,
+                ),
               ),
             ),
           ),
@@ -182,8 +187,7 @@ class _NewSlideShowState extends State<NewSlideShow> {
 
       actualVideoStream.getVideoStateStream.listen((event) async {
         print(event);
-        if (event.contains(file.filePath) &&
-            event.contains('done')) {
+        if (event.contains(file.filePath) && event.contains('done')) {
           print('video ended in Slideshow');
           await Future.delayed(Duration(seconds: 1));
           canContinue = true;
@@ -283,5 +287,4 @@ class _NewSlideShowState extends State<NewSlideShow> {
   _release360() {
     userPressing = false;
   }
-
 }

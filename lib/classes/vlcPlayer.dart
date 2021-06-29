@@ -1,7 +1,10 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_vlc_player/flutter_vlc_player.dart';
 import 'package:portrait/classes/videoStateStream.dart';
+
+import 'blocManager.dart';
 
 class MyVlcPlayer extends StatefulWidget {
   final String path;
@@ -99,11 +102,16 @@ class _MyVlcPlayerState extends State<MyVlcPlayer> {
 
   playingControl() async {
     _vlcPlayerController.addOnInitListener(() async {
+      BlocProvider.of<VideoCubit>(context).videoStart(widget.path);
+      print('########### Cubit Start');
+      print(BlocProvider.of<VideoCubit>(context).state.videoState);
+      print(BlocProvider.of<VideoCubit>(context).state.videoName);
+
       Duration videoDuration = Duration(seconds: 30);
       Duration videoPosition = Duration(seconds: 1);
       bool timeToBreak = false;
+      String videoName = widget.path;
 
-      print(videoDuration);
       while ((videoDuration.inSeconds - videoPosition.inSeconds) > 1) {
         if (timeToBreak) {
           print('Time to Break');
@@ -125,14 +133,29 @@ class _MyVlcPlayerState extends State<MyVlcPlayer> {
         if (durationHelper != null && positionHelper != null) {
           videoDuration = durationHelper;
           videoPosition = positionHelper;
+          await Future.delayed(Duration(milliseconds: 500));
+          ///Insere a posição atual do video executado no cubit se o video ainda for o mesmo
+          if(BlocProvider.of<VideoCubit>(context).state.videoName == videoName){
+            BlocProvider.of<VideoCubit>(context)
+                .actualVideoPosition(videoPosition, videoName);
+          }
+
+          print('?????????????? ${BlocProvider.of<VideoCubit>(context).state.videoPosition}');
         } else {
-          await Future.delayed(Duration(milliseconds: 1000));
+          await Future.delayed(Duration(milliseconds: 500));
         }
       }
 
-      await Future.delayed(Duration(seconds: 1));
+      BlocProvider.of<VideoCubit>(context).videoFinished(widget.path);
+      print('########### Cubit End');
+      print(BlocProvider.of<VideoCubit>(context).state.videoState);
+      print(BlocProvider.of<VideoCubit>(context).state.videoName);
+
       print('Video ended in VLC Player');
-      widget.videoStateStream.updateVideoState.add('${widget.path} done');
+
+      if (videoName == BlocProvider.of<VideoCubit>(context).state.videoName) {
+        widget.videoStateStream.updateVideoState.add('${widget.path} done');
+      }
     });
   }
 
