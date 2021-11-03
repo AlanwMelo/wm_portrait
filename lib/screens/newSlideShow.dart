@@ -1,3 +1,4 @@
+/*
 import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -288,3 +289,4 @@ class _NewSlideShowState extends State<NewSlideShow> {
     userPressing = false;
   }
 }
+*/

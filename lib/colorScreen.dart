@@ -58,7 +58,7 @@ class _ColorScreenState extends State<ColorScreen> {
     );
   }
 
-  palleteContainer({@required Color color}){
+  palleteContainer({required Color color}){
     return Container(
       height: 60,
       width: 60,

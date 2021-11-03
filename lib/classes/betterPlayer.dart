@@ -1,3 +1,4 @@
+/*
 /// Corretamente configurado mas por motivos de perfomance foi substituido pelo VLC, ao final da implementação do VLC
 /// será apagado
 
@@ -91,3 +92,4 @@ class _MyBetterPlayerState extends State<MyBetterPlayer> {
     // TODO: implement build
   }
 }
+*/

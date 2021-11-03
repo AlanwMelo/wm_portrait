@@ -1,3 +1,4 @@
+/*
 import 'dart:io';
 import 'package:clippy_flutter/clippy_flutter.dart';
 import 'package:device_info/device_info.dart';
@@ -684,7 +685,8 @@ class _OpenListState extends State<OpenList> {
     );
   }
 
-  /*arcCenterButton() {
+  */
+/*arcCenterButton() {
     return GestureDetector(
       onTap: () async {
         await Navigator.push(
@@ -701,7 +703,8 @@ class _OpenListState extends State<OpenList> {
             size: 40, color: AppColorsDialga().white()),
       ),
     );
-  }*/
+  }*//*
+
 
   arcRightButton() {
     return GestureDetector(
@@ -786,3 +789,4 @@ class _OpenListState extends State<OpenList> {
     }
   }
 }
+*/

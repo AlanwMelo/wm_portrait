@@ -36,7 +36,7 @@ class _MyAppState extends State<MyApp> {
 }
 
 class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
+  MyHomePage({Key? key, required this.title}) : super(key: key);
   final String title;
 
   @override
@@ -44,7 +44,7 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  String testeIMG;
+  String? testeIMG;
   int _counter = 0;
 
   Future<void> _incrementCounter() async {
@@ -67,13 +67,13 @@ class _MyHomePageState extends State<MyHomePage> {
             children: <Widget>[
               GestureDetector(
                 onTap: () {
-                  Navigator.push(
+                 /* Navigator.push(
                       context,
                       MaterialPageRoute(
                           builder: (context) => OpenList(
                               listName: 'thisList',
                               appName: widget.title,
-                              )));
+                              )));*/
                 },
                 child: Container(
                   height: 50,
@@ -96,7 +96,7 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
               testeIMG == null
                   ? Container()
-                  : Container(child: Image.file(new File(testeIMG))),
+                  : Container(child: Image.file(new File(testeIMG!))),
               Text(
                 '$_counter',
                 style: Theme.of(context).textTheme.headline4,

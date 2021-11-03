@@ -1,3 +1,4 @@
+/*
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -166,7 +167,8 @@ class _MyVlcPlayerState extends State<MyVlcPlayer> {
 
   Widget videoControlBar() {
     return Container();
-    /*return Container(
+    */
+/*return Container(
       padding: EdgeInsets.only(right: 8, left: 8),
       height: 50,
       color: Colors.black.withOpacity(0.5),
@@ -216,6 +218,8 @@ class _MyVlcPlayerState extends State<MyVlcPlayer> {
           ),
         ],
       ),
-    );*/
+    );*//*
+
   }
 }
+*/

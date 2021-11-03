@@ -1,3 +1,4 @@
+/*
 /// Não está sendo utilizada, mantenho temporariamente para consultas.
 
 import 'dart:io' as Io;
@@ -286,3 +287,4 @@ class _SlideshowState extends State<Slideshow> {
     userPressing = false;
   }
 }
+*/
