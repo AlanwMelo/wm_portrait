@@ -45,15 +45,18 @@ class _OpenAlbumState extends State<OpenAlbum> {
   _appBar() {
     return AppBar(
       centerTitle: true,
-      title: Text(displayName),
+      title: GestureDetector(
+          onTap: () async {
+            await FileProcessor()
+                .generateLocalInfo(widget.albumsNames[0], forceResync: true);
+          },
+          child: Text(displayName)),
       elevation: 0,
     );
   }
 
   _getFilesOfDir() async {
     /// Create a list with all files mapped with date
-    /*await FileProcessor()
-        .generateLocalInfo(widget.albumsNames[0], forceResync: true);*/
     var result = await dbManager.readDirectoryOfFiles(widget.albumsNames[0]);
 
     for (var element in result) {
@@ -96,7 +99,6 @@ class _OpenAlbumState extends State<OpenAlbum> {
       filesOfTheDay
           .sort((a, b) => b['dayTimeStamp'].compareTo(a['dayTimeStamp']));
       listOfLists.add(filesOfTheDay);
-      print(listOfLists);
     }
     listOfLists
         .sort((a, b) => b[0]['dayTimeStamp'].compareTo(a[0]['dayTimeStamp']));
@@ -159,28 +161,28 @@ class _OpenAlbumState extends State<OpenAlbum> {
                                 children: [
                               usableFile.fileType == 'video'
                                   ? Row(
-                                    children: [
-                                      Container(
+                                      children: [
+                                        Container(
                                           margin: EdgeInsets.only(
                                               left: 6, bottom: 6),
                                           child: Icon(Icons.play_circle_fill,
-                                              size: 15,
-                                              color: Colors.white),
+                                              size: 15, color: Colors.white),
                                         ),
-                                    ],
-                                  )
+                                      ],
+                                    )
                                   : Container(),
                               usableFile.specialIMG == 'true'
                                   ? Row(
-                                    children: [
-                                      Container(
-                                          margin: EdgeInsets.only(
-                                              left: 6, bottom: 6),
-                                          child: Image.asset("lib/assets/icons/360-graus.png",
-                                              color: Colors.white,
-                                              height: 15)),
-                                    ],
-                                  )
+                                      children: [
+                                        Container(
+                                            margin: EdgeInsets.only(
+                                                left: 6, bottom: 6),
+                                            child: Image.asset(
+                                                "lib/assets/icons/360-graus.png",
+                                                color: Colors.white,
+                                                height: 15)),
+                                      ],
+                                    )
                                   : Container(),
                               Container(
                                   color: Colors.black.withOpacity(0.3),

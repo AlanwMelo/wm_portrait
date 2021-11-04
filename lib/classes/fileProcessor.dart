@@ -1,6 +1,8 @@
 import 'dart:io';
 
 import 'package:exif/exif.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter_native_image/flutter_native_image.dart';
 import 'package:flutter_video_info/flutter_video_info.dart';
 import 'package:mime/mime.dart';
 import 'package:path_provider/path_provider.dart';
@@ -109,6 +111,17 @@ class FileProcessor {
                 dateTime = DateTime(year, month, day, hour, minute, second);
               }
             }
+          } else {
+            ImageProperties properties =
+                await FlutterNativeImage.getImageProperties(thisFile.path);
+
+            if ((properties.width! / 2) >= properties.height!) {
+              specialIMG = 'true';
+            } else if (properties.width! > properties.height!) {
+              orientation = 'landscape';
+            }
+
+            dateTime = thisFile.lastModifiedSync();
           }
         });
 
