@@ -22,6 +22,12 @@ class MyDbManager {
             "list_path TEXT,"
             "created TEXT"
             ")");
+
+        await db.execute("CREATE TABLE IF NOT EXISTS directories_with_images_or_videos ("
+            "ID INTEGER PRIMARY KEY AUTOINCREMENT,"
+            "directory_path TEXT"
+            ")");
+
       },
       version: _dbVersion,
     );
@@ -148,4 +154,27 @@ class MyDbManager {
   }
 
   /// ############ END LIST MANAGEMENT ############
+
+
+  /// ############ START DIRECTORIES LIST MANAGEMENT ############
+
+  addDirectoryToDB(String path) async {
+    Database db = await _startDB();
+
+    print('Adding DIR to DB: $path');
+    Map<String, dynamic> _mapToDB = {
+      "directory_path": path,
+    };
+
+    await db.insert('directories_with_images_or_videos', _mapToDB,
+        conflictAlgorithm: ConflictAlgorithm.abort);
+  }
+
+  readListOfDirectories() async {
+    Database db = await _startDB();
+
+    List<Map> result = await db.rawQuery('SELECT * FROM directories_with_images_or_videos');
+
+    return result;
+  }
 }

@@ -7,6 +7,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:portrait/classes/appColors.dart';
 import 'package:portrait/classes/clipRecct.dart';
 import 'package:portrait/classes/directoryManager.dart';
+import 'package:portrait/classes/fileProcessor.dart';
 import 'package:portrait/colorScreen.dart';
 import 'package:portrait/db/dbManager.dart';
 import 'dart:io';
@@ -52,6 +53,9 @@ class _MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<_MyHomePage>
     with SingleTickerProviderStateMixin {
   String? testeIMG;
+
+  MyDbManager dbManager = MyDbManager();
+
   int animatedTextIndex = 0;
 
   // List with all directories that contains images or videos
@@ -68,6 +72,7 @@ class _MyHomePageState extends State<_MyHomePage>
   @override
   void initState() {
     _initTextControllers();
+    _loadDirectoriesFromDB();
     super.initState();
   }
 
@@ -159,6 +164,28 @@ class _MyHomePageState extends State<_MyHomePage>
       });
   }
 
+  _resyncDirectories() {
+    DirectoryManager().getDirectoriesWithImagesAndVideos((answer) {
+      answer.forEach((element) {
+        if (!usableDirectories.toString().contains(element)) {
+          usableDirectories.add(Directory(element));
+          dbManager.addDirectoryToDB(element);
+          setState(() {});
+        }
+      });
+    });
+  }
+
+  _loadDirectoriesFromDB() async {
+    List<Map> result = await dbManager.readListOfDirectories();
+    result.forEach((element) {
+      if (!usableDirectories.contains(element['directory_path'])) {
+        usableDirectories.add(Directory(element['directory_path']));
+        setState(() {});
+      }
+    });
+  }
+
   _photos() {
     return Container(
       child: Center(
@@ -167,14 +194,7 @@ class _MyHomePageState extends State<_MyHomePage>
           children: <Widget>[
             GestureDetector(
               onTap: () async {
-                DirectoryManager().getDirectoriesWithImagesAndVideos((answer) {
-                  answer.forEach((element) {
-                    usableDirectories.add(Directory(element));
-                    setState(() {
-                      print('add');
-                    });
-                  });
-                });
+                _resyncDirectories();
               },
               child: Container(
                 height: 50,
@@ -184,8 +204,11 @@ class _MyHomePageState extends State<_MyHomePage>
             ),
             GestureDetector(
               onTap: () {
-                Navigator.push(context,
-                    MaterialPageRoute(builder: (context) => ColorScreen()));
+
+                FileProcessor().generateLocalInfo(usableDirectories[9].path);
+
+                /*Navigator.push(context,
+                    MaterialPageRoute(builder: (context) => ColorScreen()));*/
               },
               child: Container(
                 height: 50,
@@ -245,7 +268,7 @@ class _MyHomePageState extends State<_MyHomePage>
     dirName = dirName.substring(0, dirName.lastIndexOf('/'));
     dirName = dirName.substring(dirName.lastIndexOf('/') + 1);
 
-    return Text(dirName, style: TextStyle(fontSize: 15,
-    fontFamily: 'RobotoMono'));
+    return Text(dirName,
+        style: TextStyle(fontSize: 15, fontFamily: 'RobotoMono'));
   }
 }

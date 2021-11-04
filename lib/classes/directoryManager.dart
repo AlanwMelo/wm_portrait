@@ -77,4 +77,16 @@ class DirectoryManager {
       }
     }
   }
+
+  getImagesAndVideosFromDirectory(String path) {
+    Directory thisDir = Directory(path);
+    List<String> filesInDir = [];
+    for (var element in thisDir.listSync()) {
+      if (lookupMimeType(element.path).toString().contains('image') ||
+          lookupMimeType(element.path).toString().contains('video')) {
+        filesInDir.add(element.path);
+      }
+    }
+    return filesInDir;
+  }
 }
