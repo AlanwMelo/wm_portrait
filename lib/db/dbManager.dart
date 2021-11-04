@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/services.dart';
 import 'package:path/path.dart';
+import 'package:portrait/classes/checkDir.dart';
 
 //import 'package:photo_manager/photo_manager.dart';
 import 'package:sqflite/sqflite.dart';
@@ -179,14 +180,28 @@ class MyDbManager {
     return result;
   }
 
-  createDirectoryOfFiles(String dirName) async {
+  readDirectoryOfFiles(String path) async {
     Database db = await _startDB();
-    dirName = _transformDirInTableName(dirName);
-    print('Creating table $dirName');
-    await db.execute("CREATE TABLE IF NOT EXISTS $dirName ("
+    String actualTableName = await _getTableName(path);
+
+    print('Reading table $actualTableName');
+
+    List<Map> result = await db.rawQuery('SELECT * FROM $actualTableName');
+
+    return result;
+  }
+
+  createDirectoryOfFiles(String path) async {
+    Database db = await _startDB();
+    String actualTableName = await _getTableName(path);
+
+    print('Creating table $actualTableName');
+
+    await db.execute("CREATE TABLE IF NOT EXISTS $actualTableName ("
         "FileName TEXT PRIMARY KEY,"
         "FileType TEXT,"
         "FilePath TEXT,"
+        "ThumbPath TEXT,"
         "FileOrientation TEXT,"
         "VideoDuration TEXT,"
         "SpecialIMG TEXT,"
@@ -197,28 +212,31 @@ class MyDbManager {
   }
 
   insertDirectoryOfFiles(
-  {required String dirName,
+      {required String path,
       required String fileName,
       required String fileType,
       required String filePath,
+      required String thumbPath,
       required String fileOrientation,
       required String videoDuration,
       required String specialIMG,
       required int created}) async {
     Database db = await _startDB();
-    dirName = _transformDirInTableName(dirName);
+    String actualTableName = await _getTableName(path);
 
     Map<String, dynamic> fileToList = {
       "FileName": fileName,
       "FileType": fileType,
       "FilePath": filePath,
+      "ThumbPath": thumbPath,
       "FileOrientation": fileOrientation,
       "VideoDuration": videoDuration,
       "SpecialIMG": specialIMG,
       "Created": created,
     };
 
-    await db.insert(dirName, fileToList,
+    print('Inserting file $fileName into table $actualTableName');
+    await db.insert(actualTableName, fileToList,
         conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
@@ -227,5 +245,11 @@ class MyDbManager {
   _transformDirInTableName(String dirName) {
     dirName = dirName.replaceAll('/', '_');
     return dirName;
+  }
+
+  _getTableName(String path) async {
+    String thumbPath = await CheckDir().getThumbPath(path);
+    thumbPath = _transformDirInTableName(thumbPath);
+    return thumbPath;
   }
 }

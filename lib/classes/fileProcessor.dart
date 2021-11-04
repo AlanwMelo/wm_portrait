@@ -17,7 +17,7 @@ class FileProcessor {
     String thumbPath = await CheckDir().getThumbPath(path);
     String imagesDir = '${appDir.path}/thumbImages/$thumbPath';
 
-    await dbManager.createDirectoryOfFiles(thumbPath);
+    await dbManager.createDirectoryOfFiles(path);
     await CheckDir().createDir(imagesDir);
 
     var result = DirectoryManager().getImagesAndVideosFromDirectory(path);
@@ -29,18 +29,18 @@ class FileProcessor {
 
       if (lookupMimeType(thisFile.path).toString().contains('image')) {
         await _generateLocalImageInfo(
-            thisFile, '$imagesDir$fileName', thumbPath, forceResync);
+            path, thisFile, '$imagesDir$fileName', thumbPath, forceResync);
       }
       if (lookupMimeType(thisFile.path).toString().contains('video')) {
         await _generateLocalVideoInfo(
-            thisFile, '$imagesDir$fileName', thumbPath, forceResync);
+            path, thisFile, '$imagesDir$fileName', thumbPath, forceResync);
       }
     }
     return true;
   }
 
-  _generateLocalImageInfo(File thisFile, String thumbName, String thumbPath,
-      bool forceResync) async {
+  _generateLocalImageInfo(String path, File thisFile, String thumbName,
+      String thumbPath, bool forceResync) async {
     MyDbManager dbManager = MyDbManager();
 
     if (forceResync) {
@@ -61,49 +61,53 @@ class FileProcessor {
         String orientation = 'portrait';
         DateTime dateTime = DateTime.fromMillisecondsSinceEpoch(0);
 
+        print(thisFile);
         Future<Map<String, IfdTag>> data =
             readExifFromBytes(await thisFile.readAsBytes());
 
         await data.then((data) async {
-          if (data['Image Orientation'] != null) {
-            if (data['Image Orientation']
-                .toString()
-                .toLowerCase()
-                .contains('horizontal')) {
-              orientation = 'landscape';
-            } else if (data['Image Orientation']
-                .toString()
-                .toLowerCase()
-                .contains('vertical')) {
-              orientation = 'portrait';
-            } else {
-              String getNumbersFromString = data['Image Orientation']
+          if (data.isNotEmpty) {
+            if (data['Image Orientation'] != null) {
+              if (data['Image Orientation']
                   .toString()
-                  .replaceAll(new RegExp(r'[^0-9]'), '');
-              orientation =
-                  _getFileOrientation(int.parse(getNumbersFromString));
+                  .toLowerCase()
+                  .contains('horizontal')) {
+                orientation = 'landscape';
+              } else if (data['Image Orientation']
+                  .toString()
+                  .toLowerCase()
+                  .contains('vertical')) {
+                orientation = 'portrait';
+              } else {
+                String getNumbersFromString = data['Image Orientation']
+                    .toString()
+                    .replaceAll(new RegExp(r'[^0-9]'), '');
+                orientation =
+                    _getFileOrientation(int.parse(getNumbersFromString));
+              }
             }
-          }
 
-          if (data['Image ImageWidth'] != null) {
-            int width = int.parse(data['Image ImageWidth'].toString());
-            int height = int.parse(data['Image ImageLength'].toString());
+            if (data['Image ImageWidth'] != null) {
+              int width = int.parse(data['Image ImageWidth'].toString());
+              int height = int.parse(data['Image ImageLength'].toString());
 
-            /// Panoramic and 360 images have the double width compared of it's height
-            if ((width / 2) >= height) {
-              specialIMG = 'true';
+              /// Panoramic and 360 images have the double width compared of it's height
+              if ((width / 2) >= height) {
+                specialIMG = 'true';
+              }
             }
-          }
-          for (var value in data.entries) {
-            if (value.key == 'Image DateTime') {
-              int year = int.parse(value.value.printable.substring(0, 4));
-              int month = int.parse(value.value.printable.substring(5, 7));
-              int day = int.parse(value.value.printable.substring(8, 11));
-              int hour = int.parse(value.value.printable.substring(11, 13));
-              int minute = int.parse(value.value.printable.substring(14, 16));
-              int second = int.parse(value.value.printable.substring(17, 19));
 
-              dateTime = DateTime(year, month, day, hour, minute, second);
+            for (var value in data.entries) {
+              if (value.key == 'Image DateTime') {
+                int year = int.parse(value.value.printable.substring(0, 4));
+                int month = int.parse(value.value.printable.substring(5, 7));
+                int day = int.parse(value.value.printable.substring(8, 11));
+                int hour = int.parse(value.value.printable.substring(11, 13));
+                int minute = int.parse(value.value.printable.substring(14, 16));
+                int second = int.parse(value.value.printable.substring(17, 19));
+
+                dateTime = DateTime(year, month, day, hour, minute, second);
+              }
             }
           }
         });
@@ -111,20 +115,23 @@ class FileProcessor {
         String fileName =
             (thisFile.path.substring(thisFile.path.lastIndexOf('/') + 1));
 
+        print(thumbPath);
         await dbManager.insertDirectoryOfFiles(
-            dirName: thumbPath,
+            path: path,
             fileName: fileName,
             fileType: 'image',
             filePath: thisFile.path,
+            thumbPath: thumbName,
             fileOrientation: orientation,
             videoDuration: '',
             specialIMG: specialIMG,
             created: dateTime.millisecondsSinceEpoch);
 
         /// Generates Thumbnail for images
-        if(thisFile.path.toLowerCase().contains('png') || thisFile.path.toLowerCase().contains('gif')){
+        if (!thisFile.path.toLowerCase().contains('jpg') &&
+            !thisFile.path.toLowerCase().contains('jpeg')) {
           thisFile.copy(thumbName);
-        }else{
+        } else {
           await FlutterImageCompress.compressAndGetFile(
               thisFile.path, '$thumbName',
               quality: 25);
@@ -139,8 +146,8 @@ class FileProcessor {
     return true;
   }
 
-  _generateLocalVideoInfo(File thisFile, String thumbName, String thumbPath,
-      bool forceResync) async {
+  _generateLocalVideoInfo(String path, File thisFile, String thumbName,
+      String thumbPath, bool forceResync) async {
     MyDbManager dbManager = MyDbManager();
     String thumbNameWithoutExtension =
         thumbName.substring(0, thumbName.lastIndexOf('.'));
@@ -171,10 +178,11 @@ class FileProcessor {
         fileOrientation = _getFileOrientation(info.orientation);
 
         await dbManager.insertDirectoryOfFiles(
-            dirName: thumbPath,
+            path: path,
             fileName: info.title!,
             fileType: 'video',
             filePath: thisFile.path,
+            thumbPath: '$thumbNameWithoutExtension.jpg',
             fileOrientation: fileOrientation,
             videoDuration: videoLength,
             specialIMG: '',
