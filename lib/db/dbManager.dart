@@ -184,8 +184,7 @@ class MyDbManager {
     dirName = _transformDirInTableName(dirName);
     print('Creating table $dirName');
     await db.execute("CREATE TABLE IF NOT EXISTS $dirName ("
-        "ID INTEGER PRIMARY KEY AUTOINCREMENT,"
-        "FileName TEXT,"
+        "FileName TEXT PRIMARY KEY,"
         "FileType TEXT,"
         "FilePath TEXT,"
         "FileOrientation TEXT,"
@@ -198,14 +197,14 @@ class MyDbManager {
   }
 
   insertDirectoryOfFiles(
-      String dirName,
-      String fileName,
-      String fileType,
-      String filePath,
-      String fileOrientation,
-      String videoDuration,
-      String specialIMG,
-      int created) async {
+  {required String dirName,
+      required String fileName,
+      required String fileType,
+      required String filePath,
+      required String fileOrientation,
+      required String videoDuration,
+      required String specialIMG,
+      required int created}) async {
     Database db = await _startDB();
     dirName = _transformDirInTableName(dirName);
 

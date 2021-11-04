@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:exif/exif.dart';
+import 'package:flutter_video_info/flutter_video_info.dart';
 import 'package:mime/mime.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:portrait/classes/checkDir.dart';
@@ -31,7 +32,8 @@ class FileProcessor {
             thisFile, '$imagesDir$fileName', thumbPath, forceResync);
       }
       if (lookupMimeType(thisFile.path).toString().contains('video')) {
-        await _generateLocalVideoInfo(thisFile, '$imagesDir$fileName');
+        await _generateLocalVideoInfo(
+            thisFile, '$imagesDir$fileName', thumbPath, forceResync);
       }
     }
     return true;
@@ -52,7 +54,7 @@ class FileProcessor {
     if (File('$thumbName').existsSync()) {
       print('File already exists, skipping...');
     } else {
-      print('Creating Thumb: $thumbName');
+      print('Generating image info for image: $thumbName');
 
       try {
         String? specialIMG = 'false';
@@ -68,12 +70,12 @@ class FileProcessor {
                 .toString()
                 .toLowerCase()
                 .contains('horizontal')) {
-              orientation = 'horizontal';
+              orientation = 'landscape';
             } else if (data['Image Orientation']
                 .toString()
                 .toLowerCase()
                 .contains('vertical')) {
-              orientation = 'vertical';
+              orientation = 'portrait';
             } else {
               String getNumbersFromString = data['Image Orientation']
                   .toString()
@@ -110,14 +112,14 @@ class FileProcessor {
             (thisFile.path.substring(thisFile.path.lastIndexOf('/') + 1));
 
         await dbManager.insertDirectoryOfFiles(
-            thumbPath,
-            fileName,
-            'image',
-            thisFile.path,
-            orientation!,
-            '',
-            specialIMG!,
-            dateTime.microsecondsSinceEpoch);
+            dirName: thumbPath,
+            fileName: fileName,
+            fileType: 'image',
+            filePath: thisFile.path,
+            fileOrientation: orientation!,
+            videoDuration: '',
+            specialIMG: specialIMG!,
+            created: dateTime.millisecondsSinceEpoch);
 
         /// Generates Thumbnail for images
         await FlutterImageCompress.compressAndGetFile(
@@ -131,15 +133,48 @@ class FileProcessor {
     return true;
   }
 
-  _generateLocalVideoInfo(File thisFile, String thumbName) async {
+  _generateLocalVideoInfo(File thisFile, String thumbName, String thumbPath,
+      bool forceResync) async {
+    MyDbManager dbManager = MyDbManager();
     String thumbNameWithoutExtension =
         thumbName.substring(0, thumbName.lastIndexOf('.'));
 
-    if (File('$thumbName.jpg').existsSync()) {
-      print('File already exists, skipping...');
-    } else {
-      /// Generates Thumbnail for videos
+    if (forceResync) {
       try {
+        File('$thumbNameWithoutExtension.jpg').deleteSync();
+      } catch (e) {
+        print(e);
+      }
+    }
+
+    try {
+      if (File('$thumbNameWithoutExtension.jpg').existsSync()) {
+        print('File already exists, skipping...');
+      } else {
+        print('Generating video info for video: $thumbName');
+
+        final videoInfo = FlutterVideoInfo();
+        String videoLength = '';
+        String fileOrientation;
+
+        var info = await videoInfo.getVideoInfo(thisFile.path);
+
+        int videoAux = info!.duration.toString().indexOf('.');
+        videoLength = info.duration.toString().substring(0, videoAux);
+
+        fileOrientation = _getFileOrientation(info.orientation);
+
+        await dbManager.insertDirectoryOfFiles(
+            dirName: thumbPath,
+            fileName: info.title!,
+            fileType: 'video',
+            filePath: thisFile.path,
+            fileOrientation: fileOrientation,
+            videoDuration: videoLength,
+            specialIMG: '',
+            created: thisFile.lastModifiedSync().millisecondsSinceEpoch);
+
+        /// Generates Thumbnail for videos
         final thumbnailFile =
             await VideoCompress.getFileThumbnail(thisFile.path,
                 quality: 30, // default(100)
@@ -147,13 +182,13 @@ class FileProcessor {
                 );
 
         thumbnailFile.copy('$thumbNameWithoutExtension.jpg');
-      } catch (e) {
-        print(e);
       }
+    } catch (e) {
+      print(e);
     }
   }
 
-  _getFileOrientation(int orientation) {
+  _getFileOrientation(int? orientation) {
     if (orientation == 90 || orientation == 270) {
       return 'portrait';
     } else {

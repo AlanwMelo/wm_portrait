@@ -204,7 +204,6 @@ class _MyHomePageState extends State<_MyHomePage>
             ),
             GestureDetector(
               onTap: () {
-
                 FileProcessor().generateLocalInfo(usableDirectories[9].path);
 
                 /*Navigator.push(context,
@@ -231,7 +230,7 @@ class _MyHomePageState extends State<_MyHomePage>
       child: GridView.builder(
           itemCount: usableDirectories.length,
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            childAspectRatio: 1,
+            childAspectRatio: 1 / 1.2,
             crossAxisSpacing: 6,
             mainAxisSpacing: 6,
             crossAxisCount: (MediaQuery.of(context).size.width / 120).round(),
