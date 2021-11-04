@@ -52,8 +52,8 @@ class _OpenAlbumState extends State<OpenAlbum> {
 
   _getFilesOfDir() async {
     /// Create a list with all files mapped with date
-    await FileProcessor()
-        .generateLocalInfo(widget.albumsNames[0], forceResync: true);
+    /*await FileProcessor()
+        .generateLocalInfo(widget.albumsNames[0], forceResync: true);*/
     var result = await dbManager.readDirectoryOfFiles(widget.albumsNames[0]);
 
     for (var element in result) {
@@ -94,10 +94,13 @@ class _OpenAlbumState extends State<OpenAlbum> {
         }
       }
       filesOfTheDay
-          .sort((a, b) => a['dayTimeStamp'].compareTo(b['dayTimeStamp']));
+          .sort((a, b) => b['dayTimeStamp'].compareTo(a['dayTimeStamp']));
       listOfLists.add(filesOfTheDay);
-      setState(() {});
+      print(listOfLists);
     }
+    listOfLists
+        .sort((a, b) => b[0]['dayTimeStamp'].compareTo(a[0]['dayTimeStamp']));
+    setState(() {});
   }
 
   _createMap(
@@ -122,8 +125,12 @@ class _OpenAlbumState extends State<OpenAlbum> {
     return Container(
       child: Column(
         mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Small text'),
+          Container(
+            margin: EdgeInsets.only(top: 6, left: 6),
+            child: _dateText(listOfLists[listIndex][0]['convertedDate']),
+          ),
           Container(
             margin: EdgeInsets.only(top: 6),
             child: GridView.builder(
@@ -138,28 +145,41 @@ class _OpenAlbumState extends State<OpenAlbum> {
                       (MediaQuery.of(context).size.width / 120).round(),
                 ),
                 itemBuilder: (BuildContext context, int itemIndex) {
-                  UsableFilesForList usableFile = listOfLists[listIndex][itemIndex]['file'];
+                  UsableFilesForList usableFile =
+                      listOfLists[listIndex][itemIndex]['file'];
 
                   return GestureDetector(
                       onTap: () {},
                       child: Stack(fit: StackFit.expand, children: [
-                        Image.file(
-                            new File(usableFile
-                                .thumbPath),
+                        Image.file(new File(usableFile.thumbPath),
                             fit: BoxFit.cover),
                         Container(
                             child: Column(
                                 mainAxisAlignment: MainAxisAlignment.end,
                                 children: [
-                                  usableFile
-                                          .fileType ==
-                                      'video'
-                                  ? Container(
-                                    color: Colors.black.withOpacity(0.3),
-                                    margin: EdgeInsets.only(
-                                        left: 2, right: 2),
-                                    child: Icon(Icons.play_circle_fill,
-                                        size: 16, color: Colors.white),
+                              usableFile.fileType == 'video'
+                                  ? Row(
+                                    children: [
+                                      Container(
+                                          margin: EdgeInsets.only(
+                                              left: 6, bottom: 6),
+                                          child: Icon(Icons.play_circle_fill,
+                                              size: 15,
+                                              color: Colors.white),
+                                        ),
+                                    ],
+                                  )
+                                  : Container(),
+                              usableFile.specialIMG == 'true'
+                                  ? Row(
+                                    children: [
+                                      Container(
+                                          margin: EdgeInsets.only(
+                                              left: 6, bottom: 6),
+                                          child: Image.asset("lib/assets/icons/360-graus.png",
+                                              color: Colors.white,
+                                              height: 15)),
+                                    ],
                                   )
                                   : Container(),
                               Container(
@@ -170,9 +190,7 @@ class _OpenAlbumState extends State<OpenAlbum> {
                                       Expanded(
                                         child: Container(
                                             margin: EdgeInsets.only(left: 4),
-                                            child: usableFile
-                                                        .fileName
-                                                        .length >=
+                                            child: usableFile.fileName.length >=
                                                     14
                                                 ? Text(
                                                     usableFile.fileName,
@@ -181,8 +199,7 @@ class _OpenAlbumState extends State<OpenAlbum> {
                                                     style: TextStyle(
                                                         color: Colors.white),
                                                   )
-                                                : Text(
-                                                    usableFile.fileName,
+                                                : Text(usableFile.fileName,
                                                     style: TextStyle(
                                                         color: Colors.white))),
                                       )
@@ -195,5 +212,9 @@ class _OpenAlbumState extends State<OpenAlbum> {
         ],
       ),
     );
+  }
+
+  _dateText(String text) {
+    return Text(text, style: TextStyle(fontFamily: 'RobotoMono', fontSize: 13));
   }
 }

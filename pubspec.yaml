@@ -57,11 +57,12 @@ dev_dependencies:
 # The following section is specific to Flutter.
 flutter:
   assets:
-    - lib/assets/RobotoMono-SemiBoldItalic.ttf
+    - lib/assets/fonts/RobotoMono-SemiBoldItalic.ttf
+    - lib/assets/icons/360-graus.png
 
   uses-material-design: true
 
   fonts:
     - family: RobotoMono
       fonts:
-        - asset: lib/assets/RobotoMono-SemiBoldItalic.ttf
+        - asset: lib/assets/fonts/RobotoMono-SemiBoldItalic.ttf
