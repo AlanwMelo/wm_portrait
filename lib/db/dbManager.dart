@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/services.dart';
 import 'package:path/path.dart';
+
 //import 'package:photo_manager/photo_manager.dart';
 import 'package:sqflite/sqflite.dart';
 
@@ -23,11 +24,11 @@ class MyDbManager {
             "created TEXT"
             ")");
 
-        await db.execute("CREATE TABLE IF NOT EXISTS directories_with_images_or_videos ("
+        await db.execute(
+            "CREATE TABLE IF NOT EXISTS directories_with_images_or_videos ("
             "ID INTEGER PRIMARY KEY AUTOINCREMENT,"
             "directory_path TEXT"
             ")");
-
       },
       version: _dbVersion,
     );
@@ -155,7 +156,6 @@ class MyDbManager {
 
   /// ############ END LIST MANAGEMENT ############
 
-
   /// ############ START DIRECTORIES LIST MANAGEMENT ############
 
   addDirectoryToDB(String path) async {
@@ -173,8 +173,60 @@ class MyDbManager {
   readListOfDirectories() async {
     Database db = await _startDB();
 
-    List<Map> result = await db.rawQuery('SELECT * FROM directories_with_images_or_videos');
+    List<Map> result =
+        await db.rawQuery('SELECT * FROM directories_with_images_or_videos');
 
     return result;
+  }
+
+  createDirectoryOfFiles(String dirName) async {
+    Database db = await _startDB();
+    dirName = _transformDirInTableName(dirName);
+    print('Creating table $dirName');
+    await db.execute("CREATE TABLE IF NOT EXISTS $dirName ("
+        "ID INTEGER PRIMARY KEY AUTOINCREMENT,"
+        "FileName TEXT,"
+        "FileType TEXT,"
+        "FilePath TEXT,"
+        "FileOrientation TEXT,"
+        "VideoDuration TEXT,"
+        "SpecialIMG TEXT,"
+        "Created NUMERIC"
+        ")");
+
+    return true;
+  }
+
+  insertDirectoryOfFiles(
+      String dirName,
+      String fileName,
+      String fileType,
+      String filePath,
+      String fileOrientation,
+      String videoDuration,
+      String specialIMG,
+      int created) async {
+    Database db = await _startDB();
+    dirName = _transformDirInTableName(dirName);
+
+    Map<String, dynamic> fileToList = {
+      "FileName": fileName,
+      "FileType": fileType,
+      "FilePath": filePath,
+      "FileOrientation": fileOrientation,
+      "VideoDuration": videoDuration,
+      "SpecialIMG": specialIMG,
+      "Created": created,
+    };
+
+    await db.insert(dirName, fileToList,
+        conflictAlgorithm: ConflictAlgorithm.replace);
+  }
+
+  /// ############ START DIRECTORIES LIST MANAGEMENT ############
+
+  _transformDirInTableName(String dirName) {
+    dirName = dirName.replaceAll('/', '_');
+    return dirName;
   }
 }
