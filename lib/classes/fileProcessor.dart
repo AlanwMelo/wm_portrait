@@ -57,8 +57,8 @@ class FileProcessor {
       print('Generating image info for image: $thumbName');
 
       try {
-        String? specialIMG = 'false';
-        String? orientation;
+        String specialIMG = 'false';
+        String orientation = 'portrait';
         DateTime dateTime = DateTime.fromMillisecondsSinceEpoch(0);
 
         Future<Map<String, IfdTag>> data =
@@ -116,18 +116,24 @@ class FileProcessor {
             fileName: fileName,
             fileType: 'image',
             filePath: thisFile.path,
-            fileOrientation: orientation!,
+            fileOrientation: orientation,
             videoDuration: '',
-            specialIMG: specialIMG!,
+            specialIMG: specialIMG,
             created: dateTime.millisecondsSinceEpoch);
 
         /// Generates Thumbnail for images
-        await FlutterImageCompress.compressAndGetFile(
-            thisFile.path, '$thumbName',
-            quality: 25);
+        if(thisFile.path.toLowerCase().contains('png') || thisFile.path.toLowerCase().contains('gif')){
+          thisFile.copy(thumbName);
+        }else{
+          await FlutterImageCompress.compressAndGetFile(
+              thisFile.path, '$thumbName',
+              quality: 25);
+        }
       } catch (e) {
         print(e);
       }
+
+      print('Info generated for image: $thumbName');
     }
 
     return true;
@@ -182,10 +188,13 @@ class FileProcessor {
                 );
 
         thumbnailFile.copy('$thumbNameWithoutExtension.jpg');
+
+        print('Info generated for video: $thumbName');
       }
     } catch (e) {
       print(e);
     }
+    return true;
   }
 
   _getFileOrientation(int? orientation) {

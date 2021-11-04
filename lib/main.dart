@@ -10,6 +10,7 @@ import 'package:portrait/classes/directoryManager.dart';
 import 'package:portrait/classes/fileProcessor.dart';
 import 'package:portrait/colorScreen.dart';
 import 'package:portrait/db/dbManager.dart';
+import 'package:portrait/screens/openAlbum.dart';
 import 'dart:io';
 import 'package:portrait/screens/openList.dart';
 
@@ -236,15 +237,24 @@ class _MyHomePageState extends State<_MyHomePage>
             crossAxisCount: (MediaQuery.of(context).size.width / 120).round(),
           ),
           itemBuilder: (BuildContext context, int index) {
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                    child: Container(
-                        child: MyClipRRect()
-                            .myClipRRect(Container(color: Colors.blueAccent)))),
-                Container(height: 40, child: _albumsName(index))
-              ],
+            return GestureDetector(
+              onTap: () {
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) =>
+                            OpenAlbum(albumsNames: [usableDirectories[index].path])));
+              },
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                      child: Container(
+                          child: MyClipRRect().myClipRRect(
+                              Container(color: Colors.blueAccent)))),
+                  Container(height: 40, child: _albumsName(index))
+                ],
+              ),
             );
             /*return Container(
               child: MyClipRRect().myClipRRect(Container(

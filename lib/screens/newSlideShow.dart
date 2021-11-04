@@ -8,7 +8,7 @@ import 'package:flutter_swiper/flutter_swiper.dart';
 import 'package:flutter_vlc_player/flutter_vlc_player.dart';
 import 'package:panorama/panorama.dart';
 import 'package:portrait/classes/blocManager.dart';
-import 'package:portrait/classes/genericClasses.dart';
+import 'package:portrait/classes/usableFilesForList.dart';
 import 'package:portrait/classes/videoStateStream.dart';
 import 'package:portrait/classes/vlcPlayer.dart';
 import 'package:wakelock/wakelock.dart';
