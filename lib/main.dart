@@ -11,6 +11,7 @@ import 'package:portrait/classes/clipRecct.dart';
 import 'package:portrait/classes/directoryManager.dart';
 import 'package:portrait/classes/fileProcessor.dart';
 import 'package:portrait/classes/floatingLoadingBarForStack.dart';
+import 'package:portrait/classes/syncFiles.dart';
 import 'package:portrait/colorScreen.dart';
 import 'package:portrait/db/dbManager.dart';
 import 'package:portrait/screens/openAlbum.dart';
@@ -79,10 +80,12 @@ class _MyHomePageState extends State<_MyHomePage>
   final SyncingStream syncingStreamClass = SyncingStream();
   late Stream syncingStream;
 
+  late SyncFiles syncFiles;
 
   @override
   void initState() {
     syncingStream = syncingStreamClass.streamControllerStream;
+    syncFiles = SyncFiles(syncingStreamClass);
     _initTextControllers();
     _loadDirectoriesFromDB();
     super.initState();
@@ -167,7 +170,7 @@ class _MyHomePageState extends State<_MyHomePage>
                 ),
               ],
             ),
-            FloatingLoadingBarForStack(syncingStream: syncingStream),
+            FloatingLoadingBarForStack(syncingStream: syncingStreamClass),
           ],
         ),
       ),
@@ -189,19 +192,14 @@ class _MyHomePageState extends State<_MyHomePage>
       });
   }
 
-  _resyncDirectories() async {
-    //verificar pemissao aqui!!!!
-    syncingStreamClass.streamControllerSink.add('start');
-    syncingStreamClass.streamControllerSink.add('Syncing directories list');
-    DirectoryManager().getDirectoriesWithImagesAndVideos((answer) {
-      syncingStreamClass.streamControllerSink.add('stop');
-      answer.forEach((element) {
-        if (!usableDirectories.toString().contains(element)) {
-          usableDirectories.add(Directory(element));
-          dbManager.addDirectoryToDB(element);
-          setState(() {});
-        }
-      });
+  _syncDirectories() async {
+    syncFiles.syncDirectories((event) {
+      if (event == 'done') {
+        syncFiles.syncFiles(usableDirectories);
+      } else if (!usableDirectories.toString().contains(event)) {
+        usableDirectories.add(Directory(event));
+        setState(() {});
+      }
     });
   }
 
@@ -223,7 +221,7 @@ class _MyHomePageState extends State<_MyHomePage>
           children: <Widget>[
             GestureDetector(
               onTap: () async {
-                _resyncDirectories();
+                _syncDirectories();
               },
               child: Container(
                 height: 50,
@@ -284,11 +282,6 @@ class _MyHomePageState extends State<_MyHomePage>
                 ],
               ),
             );
-            /*return Container(
-              child: MyClipRRect().myClipRRect(Container(
-                color: Colors.blueAccent,
-              )),
-            );*/
           }),
     );
   }

@@ -167,8 +167,14 @@ class MyDbManager {
       "directory_path": path,
     };
 
-    await db.insert('directories_with_images_or_videos', _mapToDB,
-        conflictAlgorithm: ConflictAlgorithm.abort);
+    var result = await readListOfDirectories();
+
+    if (result.toString().contains(path)) {
+      print('DIR already in DB aborting... DIR: $path');
+    } else {
+      await db.insert('directories_with_images_or_videos', _mapToDB,
+          conflictAlgorithm: ConflictAlgorithm.abort);
+    }
   }
 
   readListOfDirectories() async {
@@ -243,7 +249,9 @@ class MyDbManager {
   /// ############ START DIRECTORIES LIST MANAGEMENT ############
 
   _transformDirInTableName(String dirName) {
-    dirName = dirName.replaceAll('/', '_');
+    dirName = dirName.replaceAll(RegExp('[^A-Za-z0-9]'), '_');
+
+    print(dirName);
     return dirName;
   }
 

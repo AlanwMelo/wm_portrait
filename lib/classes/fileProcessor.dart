@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:exif/exif.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter_native_image/flutter_native_image.dart';
 import 'package:flutter_video_info/flutter_video_info.dart';
 import 'package:mime/mime.dart';
@@ -22,7 +21,8 @@ class FileProcessor {
     await dbManager.createDirectoryOfFiles(path);
     await CheckDir().createDir(imagesDir);
 
-    var result = DirectoryManager().getImagesAndVideosFromDirectory(path);
+    List<String> result =
+        DirectoryManager().getImagesAndVideosFromDirectory(path);
 
     for (var element in result) {
       File thisFile = File(element);
@@ -128,26 +128,25 @@ class FileProcessor {
         String fileName =
             (thisFile.path.substring(thisFile.path.lastIndexOf('/') + 1));
 
-        print(thumbPath);
-        await dbManager.insertDirectoryOfFiles(
-            path: path,
-            fileName: fileName,
-            fileType: 'image',
-            filePath: thisFile.path,
-            thumbPath: thumbName,
-            fileOrientation: orientation,
-            videoDuration: '',
-            specialIMG: specialIMG,
-            created: dateTime.millisecondsSinceEpoch);
-
         /// Generates Thumbnail for images
         if (!thisFile.path.toLowerCase().contains('jpg') &&
             !thisFile.path.toLowerCase().contains('jpeg')) {
-          thisFile.copy(thumbName);
+          await thisFile.copy(thumbName);
         } else {
           await FlutterImageCompress.compressAndGetFile(
               thisFile.path, '$thumbName',
               quality: 25);
+
+          await dbManager.insertDirectoryOfFiles(
+              path: path,
+              fileName: fileName,
+              fileType: 'image',
+              filePath: thisFile.path,
+              thumbPath: thumbName,
+              fileOrientation: orientation,
+              videoDuration: '',
+              specialIMG: specialIMG,
+              created: dateTime.millisecondsSinceEpoch);
         }
       } catch (e) {
         print(e);
@@ -190,6 +189,15 @@ class FileProcessor {
 
         fileOrientation = _getFileOrientation(info.orientation);
 
+        /// Generates Thumbnail for videos
+        final thumbnailFile =
+            await VideoCompress.getFileThumbnail(thisFile.path,
+                quality: 30, // default(100)
+                position: 0 // default(-1)
+                );
+
+        await thumbnailFile.copy('$thumbNameWithoutExtension.jpg');
+
         await dbManager.insertDirectoryOfFiles(
             path: path,
             fileName: info.title!,
@@ -200,15 +208,6 @@ class FileProcessor {
             videoDuration: videoLength,
             specialIMG: '',
             created: thisFile.lastModifiedSync().millisecondsSinceEpoch);
-
-        /// Generates Thumbnail for videos
-        final thumbnailFile =
-            await VideoCompress.getFileThumbnail(thisFile.path,
-                quality: 30, // default(100)
-                position: 0 // default(-1)
-                );
-
-        thumbnailFile.copy('$thumbNameWithoutExtension.jpg');
 
         print('Info generated for video: $thumbName');
       }
