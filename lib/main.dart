@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:card_swiper/card_swiper.dart';
 import 'package:file_manager/controller/file_manager_controller.dart';
 import 'package:file_manager/file_manager.dart';
@@ -8,6 +10,7 @@ import 'package:portrait/classes/appColors.dart';
 import 'package:portrait/classes/clipRecct.dart';
 import 'package:portrait/classes/directoryManager.dart';
 import 'package:portrait/classes/fileProcessor.dart';
+import 'package:portrait/classes/floatingLoadingBarForStack.dart';
 import 'package:portrait/colorScreen.dart';
 import 'package:portrait/db/dbManager.dart';
 import 'package:portrait/screens/openAlbum.dart';
@@ -53,8 +56,6 @@ class _MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<_MyHomePage>
     with SingleTickerProviderStateMixin {
-  String? testeIMG;
-
   MyDbManager dbManager = MyDbManager();
 
   int animatedTextIndex = 0;
@@ -70,80 +71,99 @@ class _MyHomePageState extends State<_MyHomePage>
   SwiperController swiperController = SwiperController();
   List<Widget> swiperItems = [];
 
+  // Stream of syncing files used in the whole APP
+  bool syncRunning = false;
+  final StreamController<String> streamController = StreamController<String>();
+  late Stream syncingStream;
+
   @override
   void initState() {
+    syncingStream = streamController.stream;
     _initTextControllers();
     _loadDirectoriesFromDB();
     super.initState();
   }
 
   @override
+  void dispose() {
+    streamController.close();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        child: Column(
+        child: Stack(
           children: [
-            Container(
-              padding: EdgeInsets.all(15),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Container(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          GestureDetector(
-                            onTap: () {
-                              colorAnimationController.reverse();
-                              swiperController.move(0);
-                            },
-                            child: _topText('Photos', photoAnimation.value),
+            Column(
+              children: [
+                Container(
+                  padding: EdgeInsets.all(15),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Container(
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              GestureDetector(
+                                onTap: () {
+                                  colorAnimationController.reverse();
+                                  swiperController.move(0);
+                                },
+                                child: _topText('Photos', photoAnimation.value),
+                              ),
+                              GestureDetector(
+                                onTap: () {
+                                  colorAnimationController.forward();
+                                  swiperController.move(1);
+                                },
+                                child: _topText('Albums', albumAnimation.value),
+                              ),
+                            ],
                           ),
-                          GestureDetector(
-                            onTap: () {
-                              colorAnimationController.forward();
-                              swiperController.move(1);
-                            },
-                            child: _topText('Albums', albumAnimation.value),
-                          ),
-                        ],
+                        ),
                       ),
+                      GestureDetector(
+                          onTap: () {
+                            print('ayaya');
+                          },
+                          child:
+                              Container(child: Icon(Icons.more_vert_rounded))),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child: Container(
+                    child:
+                        NotificationListener<OverscrollIndicatorNotification>(
+                      //Removes glow animation on overscroll
+                      onNotification:
+                          (OverscrollIndicatorNotification? overscroll) {
+                        overscroll!.disallowGlow();
+                        return true;
+                      },
+                      child: Swiper(
+                          controller: swiperController,
+                          loop: false,
+                          itemCount: 2,
+                          onIndexChanged: (index) {
+                            index == 0
+                                ? colorAnimationController.reverse()
+                                : colorAnimationController.forward();
+                          },
+                          itemBuilder: (BuildContext context, int index) {
+                            return Container(
+                              child: index == 0 ? _photos() : _albums(),
+                            );
+                          }),
                     ),
                   ),
-                  GestureDetector(
-                      onTap: () {
-                        print('ayaya');
-                      },
-                      child: Container(child: Icon(Icons.more_vert_rounded))),
-                ],
-              ),
-            ),
-            Expanded(
-              child: Container(
-                child: NotificationListener<OverscrollIndicatorNotification>(
-                  //Removes glow animation on overscroll
-                  onNotification:
-                      (OverscrollIndicatorNotification? overscroll) {
-                    overscroll!.disallowGlow();
-                    return true;
-                  },
-                  child: Swiper(
-                      controller: swiperController,
-                      loop: false,
-                      itemCount: 2,
-                      onIndexChanged: (index) {
-                        index == 0
-                            ? colorAnimationController.reverse()
-                            : colorAnimationController.forward();
-                      },
-                      itemBuilder: (BuildContext context, int index) {
-                        return Container(
-                          child: index == 0 ? _photos() : _albums(),
-                        );
-                      }),
                 ),
-              ),
+              ],
             ),
+            FloatingLoadingBarForStack(syncingStream: syncingStream),
           ],
         ),
       ),
@@ -166,7 +186,10 @@ class _MyHomePageState extends State<_MyHomePage>
   }
 
   _resyncDirectories() {
+    streamController.add('start');
+    streamController.add('Syncing directories list');
     DirectoryManager().getDirectoriesWithImagesAndVideos((answer) {
+      streamController.add('stop');
       answer.forEach((element) {
         if (!usableDirectories.toString().contains(element)) {
           usableDirectories.add(Directory(element));
@@ -205,10 +228,6 @@ class _MyHomePageState extends State<_MyHomePage>
             ),
             GestureDetector(
               onTap: () {
-                FileProcessor().generateLocalInfo(usableDirectories[9].path);
-
-                /*Navigator.push(context,
-                    MaterialPageRoute(builder: (context) => ColorScreen()));*/
               },
               child: Container(
                 height: 50,
@@ -216,9 +235,6 @@ class _MyHomePageState extends State<_MyHomePage>
                 child: Text("Colors"),
               ),
             ),
-            testeIMG == null
-                ? Container()
-                : Container(child: Image.file(new File(testeIMG!))),
           ],
         ),
       ),
@@ -242,8 +258,8 @@ class _MyHomePageState extends State<_MyHomePage>
                 Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (context) =>
-                            OpenAlbum(albumsNames: [usableDirectories[index].path])));
+                        builder: (context) => OpenAlbum(
+                            albumsNames: [usableDirectories[index].path])));
               },
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -280,4 +296,6 @@ class _MyHomePageState extends State<_MyHomePage>
     return Text(dirName,
         style: TextStyle(fontSize: 15, fontFamily: 'RobotoMono'));
   }
+
+  Stream<String> syncingFilesStream() async* {}
 }
