@@ -16,6 +16,9 @@ import 'package:portrait/db/dbManager.dart';
 import 'package:portrait/screens/openAlbum.dart';
 import 'dart:io';
 import 'package:portrait/screens/openList.dart';
+import 'package:rxdart/rxdart.dart';
+
+import 'classes/syncingStream.dart';
 
 void main() {
   runApp(MyApp());
@@ -73,12 +76,13 @@ class _MyHomePageState extends State<_MyHomePage>
 
   // Stream of syncing files used in the whole APP
   bool syncRunning = false;
-  final StreamController<String> streamController = StreamController<String>();
+  final SyncingStream syncingStreamClass = SyncingStream();
   late Stream syncingStream;
+
 
   @override
   void initState() {
-    syncingStream = streamController.stream;
+    syncingStream = syncingStreamClass.streamControllerStream;
     _initTextControllers();
     _loadDirectoriesFromDB();
     super.initState();
@@ -86,7 +90,7 @@ class _MyHomePageState extends State<_MyHomePage>
 
   @override
   void dispose() {
-    streamController.close();
+    syncingStreamClass.closeStream();
     super.dispose();
   }
 
@@ -185,11 +189,12 @@ class _MyHomePageState extends State<_MyHomePage>
       });
   }
 
-  _resyncDirectories() {
-    streamController.add('start');
-    streamController.add('Syncing directories list');
+  _resyncDirectories() async {
+    //verificar pemissao aqui!!!!
+    syncingStreamClass.streamControllerSink.add('start');
+    syncingStreamClass.streamControllerSink.add('Syncing directories list');
     DirectoryManager().getDirectoriesWithImagesAndVideos((answer) {
-      streamController.add('stop');
+      syncingStreamClass.streamControllerSink.add('stop');
       answer.forEach((element) {
         if (!usableDirectories.toString().contains(element)) {
           usableDirectories.add(Directory(element));
@@ -227,7 +232,14 @@ class _MyHomePageState extends State<_MyHomePage>
               ),
             ),
             GestureDetector(
-              onTap: () {
+              onTap: () async {
+                syncingStreamClass.streamControllerSink.add('start');
+                await Future.delayed(Duration(seconds: 1));
+                syncingStreamClass.streamControllerSink.add('Frase 1');
+                await Future.delayed(Duration(seconds: 1));
+                syncingStreamClass.streamControllerSink.add('Frase 2');
+                await Future.delayed(Duration(seconds: 1));
+                syncingStreamClass.streamControllerSink.add('stop');
               },
               child: Container(
                 height: 50,
