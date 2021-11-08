@@ -14,7 +14,7 @@ import 'package:video_compress/video_compress.dart';
 
 class FileProcessor {
   generateLocalInfo(String path, Database openDB,
-      {bool forceResync = true}) async {
+      {bool forceResync = false}) async {
     MyDbManager dbManager = MyDbManager();
     Directory appDir = await getApplicationDocumentsDirectory();
     String thumbPath = await CheckDir().getThumbPath(path);
@@ -39,6 +39,7 @@ class FileProcessor {
           filesToSync.add(element);
         }
       }
+      /// Arquivos que estao no DB mas não estão na pasta
       for (var element in mapOfFilesInDB) {
         if (!filesInDir
             .toString()
