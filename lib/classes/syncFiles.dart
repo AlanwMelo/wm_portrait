@@ -33,19 +33,26 @@ class SyncFiles {
     }
   }
 
-  syncFiles(List<Directory> directories, List<Map> directoriesInDB) async {
-    syncingStreamClass.streamControllerSink.add('start');
-    directories
-        .sort((a, b) => b.statSync().modified.compareTo(a.statSync().modified));
-    for (var directory in directories) {
-      String dirName =
-          directory.path.substring(0, directory.path.lastIndexOf('/'));
-      dirName = dirName.substring(dirName.lastIndexOf('/') + 1);
+  syncFiles(List<Directory> directories) async {
+    if (directories.isNotEmpty) {
+      syncingStreamClass.streamControllerSink.add('start');
+      directories.sort(
+          (a, b) => b.statSync().modified.compareTo(a.statSync().modified));
 
-      syncingStreamClass.streamControllerSink.add('Syncing $dirName');
+      print(directories.where(
+          (element) => element.path.toLowerCase().contains('dcim/camera')));
 
-      await FileProcessor().generateLocalInfo(directory.path, openDB);
-    }
+      for (var directory in directories) {
+        String dirName =
+            directory.path.substring(0, directory.path.lastIndexOf('/'));
+        dirName = dirName.substring(dirName.lastIndexOf('/') + 1);
+
+        syncingStreamClass.streamControllerSink.add('Syncing $dirName');
+
+        await FileProcessor().generateLocalInfo(directory.path, openDB);
+      }
+      syncingStreamClass.streamControllerSink.add('stop');
+    } else {}
     syncingStreamClass.streamControllerSink.add('stop');
     return true;
   }

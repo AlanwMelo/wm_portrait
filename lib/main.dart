@@ -199,28 +199,31 @@ class _MyHomePageState extends State<_MyHomePage>
       });
   }
 
+  /// Cria diretorios no banco de dados se nao existirem e aponta os que devem ser atualizados
   _syncDirectories() async {
+    List<Directory> directoriesToUpdate = [];
     syncFiles.syncDirectories((event) async {
       if (event == 'done') {
-        /// Cria diretorios no banco de dados se nao existirem
         for (var element in usableDirectories) {
           if (directoriesInDB.toString().contains(element.path)) {
             print('DIR already in DB... DIR: ${element.path}');
 
-            int lastModified = await directoriesInDB.singleWhere(
+            int lastModified = await directoriesInDB.firstWhere(
                 (directoriesInDBElement) => directoriesInDBElement
                     .containsValue(element.path))['modified'];
 
             if (lastModified !=
                 element.statSync().modified.millisecondsSinceEpoch) {
-              print('Alterado desde lá');
+              /// Se o diretorio foi alterado desde sua ultima observação
+              directoriesToUpdate.add(element);
             }
           } else {
+            directoriesToUpdate.add(element);
             await dbManager.addDirectoryToDB(element.path, openDB,
                 element.statSync().modified.millisecondsSinceEpoch);
           }
         }
-        _syncFiles() {}
+        await syncFiles.syncFiles([usableDirectories[0]]); // trocar para directoriesToUpdate
       } else if (!usableDirectories.toString().contains(event)) {
         usableDirectories.add(Directory(event));
         setState(() {});

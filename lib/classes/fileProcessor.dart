@@ -14,27 +14,55 @@ import 'package:video_compress/video_compress.dart';
 
 class FileProcessor {
   generateLocalInfo(String path, Database openDB,
-      {bool forceResync = false}) async {
+      {bool forceResync = true}) async {
+    MyDbManager dbManager = MyDbManager();
     Directory appDir = await getApplicationDocumentsDirectory();
     String thumbPath = await CheckDir().getThumbPath(path);
     String imagesDir = '${appDir.path}/thumbImages/$thumbPath';
 
     await CheckDir().createDir(imagesDir);
 
-    List<String> result =  await DirectoryManager().getImagesAndVideosFromDirectory(path);
+    List<String> filesInDir =
+        await DirectoryManager().getImagesAndVideosFromDirectory(path);
+    List<Map> mapOfFilesInDB =
+        await dbManager.readDirectoryOfFiles(path, openDB);
+    List<String> filesToSync = [];
+    List<String> filesToDelete = [];
 
-    for (var element in result) {
+    if (!forceResync) {
+      /// Arquivos que estao na pasta mas não estão no DB
+      for (var element in filesInDir) {
+        if (!mapOfFilesInDB
+            .toString()
+            .toLowerCase()
+            .contains(element.toLowerCase())) {
+          filesToSync.add(element);
+        }
+      }
+      for (var element in mapOfFilesInDB) {
+        if (!filesInDir
+            .toString()
+            .toLowerCase()
+            .contains(element['FilePath'].toString().toLowerCase())) {
+          filesToDelete.add(element['FilePath']);
+        }
+      }
+    } else {
+      filesToSync = filesInDir;
+    }
+
+    for (var element in filesToSync) {
       File thisFile = File(element);
       String fileName =
           (thisFile.path.substring(thisFile.path.lastIndexOf('/') + 1));
 
       if (lookupMimeType(thisFile.path).toString().contains('image')) {
-        // await _generateLocalImageInfo(
-        //   path, thisFile, '$imagesDir$fileName', thumbPath, forceResync);
+        await _generateLocalImageInfo(path, thisFile, '$imagesDir$fileName',
+            thumbPath, forceResync, openDB);
       }
       if (lookupMimeType(thisFile.path).toString().contains('video')) {
-        /*await _generateLocalVideoInfo(
-            path, thisFile, '$imagesDir$fileName', thumbPath, forceResync);*/
+        await _generateLocalVideoInfo(path, thisFile, '$imagesDir$fileName',
+            thumbPath, forceResync, openDB);
       }
     }
     return true;
@@ -145,7 +173,8 @@ class FileProcessor {
               fileOrientation: orientation,
               videoDuration: '',
               specialIMG: specialIMG,
-              created: dateTime.millisecondsSinceEpoch, openDB: openDB);
+              created: dateTime.millisecondsSinceEpoch,
+              openDB: openDB);
         }
       } catch (e) {
         print(e);
@@ -160,6 +189,7 @@ class FileProcessor {
   _generateLocalVideoInfo(String path, File thisFile, String thumbName,
       String thumbPath, bool forceResync, Database openDB) async {
     MyDbManager dbManager = MyDbManager();
+    Duration duration = Duration(milliseconds: 500);
     String thumbNameWithoutExtension =
         thumbName.substring(0, thumbName.lastIndexOf('.'));
 
@@ -181,12 +211,15 @@ class FileProcessor {
         String videoLength = '';
         String fileOrientation;
 
+        await Future.delayed(duration);
         var info = await videoInfo.getVideoInfo(thisFile.path);
 
         int videoAux = info!.duration.toString().indexOf('.');
         videoLength = info.duration.toString().substring(0, videoAux);
 
         fileOrientation = _getFileOrientation(info.orientation);
+
+        await Future.delayed(duration);
 
         /// Generates Thumbnail for videos
         final thumbnailFile =
@@ -195,7 +228,8 @@ class FileProcessor {
                 position: 0 // default(-1)
                 );
 
-        await thumbnailFile.copy('$thumbNameWithoutExtension.jpg');
+        await Future.delayed(duration);
+        thumbnailFile.copy('$thumbNameWithoutExtension.jpg');
 
         await dbManager.insertDirectoryOfFiles(
             path: path,
@@ -206,7 +240,8 @@ class FileProcessor {
             fileOrientation: fileOrientation,
             videoDuration: videoLength,
             specialIMG: '',
-            created: thisFile.lastModifiedSync().millisecondsSinceEpoch, openDB: openDB);
+            created: thisFile.lastModifiedSync().millisecondsSinceEpoch,
+            openDB: openDB);
 
         print('Info generated for video: $thumbName');
       }

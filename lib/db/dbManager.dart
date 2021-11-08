@@ -177,12 +177,12 @@ class MyDbManager {
     return result;
   }
 
-  readDirectoryOfFiles(String path, Database db) async {
+  readDirectoryOfFiles(String path, Database openDB) async {
     String actualTableName = await _getTableName(path);
 
     print('Reading table $actualTableName');
 
-    List<Map> result = await db.query(actualTableName);
+    List<Map> result = await openDB.rawQuery('SELECT * FROM $actualTableName');
 
     return result;
   }
