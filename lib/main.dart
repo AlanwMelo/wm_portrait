@@ -180,7 +180,7 @@ class _MyHomePageState extends State<_MyHomePage>
   _openDB() async {
     openDB = await dbManager.dbManagerStartDB();
     syncFiles = SyncFiles(syncingStreamClass, openDB);
-    _loadDirectoriesFromDB();
+    await _loadDirectoriesFromDB();
     print('DB Initialized');
   }
 
@@ -202,14 +202,25 @@ class _MyHomePageState extends State<_MyHomePage>
   _syncDirectories() async {
     syncFiles.syncDirectories((event) async {
       if (event == 'done') {
+        /// Cria diretorios no banco de dados se nao existirem
         for (var element in usableDirectories) {
           if (directoriesInDB.toString().contains(element.path)) {
             print('DIR already in DB... DIR: ${element.path}');
+
+            int lastModified = await directoriesInDB.singleWhere(
+                (directoriesInDBElement) => directoriesInDBElement
+                    .containsValue(element.path))['modified'];
+
+            if (lastModified !=
+                element.statSync().modified.millisecondsSinceEpoch) {
+              print('Alterado desde lá');
+            }
           } else {
-            await dbManager.addDirectoryToDB(element.path, openDB);
+            await dbManager.addDirectoryToDB(element.path, openDB,
+                element.statSync().modified.millisecondsSinceEpoch);
           }
         }
-        syncFiles.syncFiles(usableDirectories);
+        _syncFiles() {}
       } else if (!usableDirectories.toString().contains(event)) {
         usableDirectories.add(Directory(event));
         setState(() {});
@@ -219,12 +230,13 @@ class _MyHomePageState extends State<_MyHomePage>
 
   _loadDirectoriesFromDB() async {
     directoriesInDB = await dbManager.readListOfDirectories(openDB);
-    directoriesInDB.forEach((element) {
+    for (var element in directoriesInDB) {
       if (!usableDirectories.contains(element['directory_path'])) {
         usableDirectories.add(Directory(element['directory_path']));
         setState(() {});
       }
-    });
+    }
+    return true;
   }
 
   _photos() {
@@ -235,6 +247,7 @@ class _MyHomePageState extends State<_MyHomePage>
           children: <Widget>[
             GestureDetector(
               onTap: () async {
+                await _loadDirectoriesFromDB();
                 _syncDirectories();
               },
               child: Container(

@@ -33,9 +33,10 @@ class SyncFiles {
     }
   }
 
-  syncFiles(List<Directory> directories) async {
+  syncFiles(List<Directory> directories, List<Map> directoriesInDB) async {
     syncingStreamClass.streamControllerSink.add('start');
-
+    directories
+        .sort((a, b) => b.statSync().modified.compareTo(a.statSync().modified));
     for (var directory in directories) {
       String dirName =
           directory.path.substring(0, directory.path.lastIndexOf('/'));
@@ -46,5 +47,6 @@ class SyncFiles {
       await FileProcessor().generateLocalInfo(directory.path, openDB);
     }
     syncingStreamClass.streamControllerSink.add('stop');
+    return true;
   }
 }

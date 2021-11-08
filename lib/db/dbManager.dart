@@ -29,7 +29,8 @@ class MyDbManager {
         await db.execute(
             "CREATE TABLE IF NOT EXISTS directories_with_images_or_videos ("
             "ID INTEGER PRIMARY KEY AUTOINCREMENT,"
-            "directory_path TEXT"
+            "directory_path TEXT,"
+            "modified NUMERIC"
             ")");
       },
       version: _dbVersion,
@@ -156,10 +157,11 @@ class MyDbManager {
 
   /// ############ START DIRECTORIES LIST MANAGEMENT ############
 
-  addDirectoryToDB(String path, Database db) async {
+  addDirectoryToDB(String path, Database db, int modified) async {
     print('Adding DIR to DB: $path');
     Map<String, dynamic> _mapToDB = {
       "directory_path": path,
+      "modified": modified
     };
 
     await db.insert('directories_with_images_or_videos', _mapToDB,
@@ -169,7 +171,8 @@ class MyDbManager {
   }
 
   readListOfDirectories(Database db) async {
-    List<Map> result = await db.query('directories_with_images_or_videos');
+    List<Map> result =
+        await db.rawQuery('SELECT * FROM directories_with_images_or_videos');
 
     return result;
   }
@@ -179,7 +182,7 @@ class MyDbManager {
 
     print('Reading table $actualTableName');
 
-    List<Map> result = await db.rawQuery('SELECT * FROM $actualTableName');
+    List<Map> result = await db.query(actualTableName);
 
     return result;
   }
@@ -188,8 +191,6 @@ class MyDbManager {
     String actualTableName = await _getTableName(path);
 
     print('Creating table $actualTableName');
-
-    await Future.delayed(Duration(seconds: 1));
 
     await db.execute("CREATE TABLE IF NOT EXISTS $actualTableName ("
         "FileName TEXT PRIMARY KEY,"
