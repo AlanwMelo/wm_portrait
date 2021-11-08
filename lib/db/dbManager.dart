@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'dart:typed_data';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:path/path.dart';
 import 'package:portrait/classes/checkDir.dart';
@@ -11,7 +12,7 @@ class MyDbManager {
   static final _databaseName = "portrait.db";
   static final _dbVersion = 1;
 
-  Future<Database> _startDB() async {
+  Future<Database> dbManagerStartDB() async {
     final Future<Database> database = openDatabase(
       // Set the path to the database. Note: Using the `join` function from the
       // `path` package is best practice to ensure the path is correctly
@@ -38,15 +39,11 @@ class MyDbManager {
     return finalDB;
   }
 
-  createDB() async {
-    await _startDB();
-  }
-
   /// ############ START TB - LISTS ############
 
   createNewList(String listName, String listPath, String created) async {
     // table = List_of_Lists
-    Database db = await _startDB();
+    Database db = await dbManagerStartDB();
 
     Map<String, dynamic> _newList = {
       "list_name": listName,
@@ -59,7 +56,7 @@ class MyDbManager {
   }
 
   createListOfFiles(String listName) async {
-    Database db = await _startDB();
+    Database db = await dbManagerStartDB();
     await db.execute("CREATE TABLE IF NOT EXISTS $listName ("
         "ID INTEGER PRIMARY KEY AUTOINCREMENT,"
         "FileName TEXT,"
@@ -75,7 +72,7 @@ class MyDbManager {
 
   updateList(String listName, String listPath, String created) async {
     // table = List_of_Lists
-    Database db = await _startDB();
+    Database db = await dbManagerStartDB();
 
     Map<String, dynamic> _updatedList = {
       "list_name": listName,
@@ -88,7 +85,7 @@ class MyDbManager {
   }
 
   readListOfLists() async {
-    Database db = await _startDB();
+    Database db = await dbManagerStartDB();
 
     List<Map> result = await db.rawQuery('SELECT * FROM List_of_Lists');
 
@@ -96,7 +93,7 @@ class MyDbManager {
   }
 
   deleteList(String listName) async {
-    Database db = await _startDB();
+    Database db = await dbManagerStartDB();
 
     await db
         .rawQuery('DELETE FROM List_of_Lists WHERE listName=?', ['$listName']);
@@ -117,7 +114,7 @@ class MyDbManager {
       String originDevice,
       String specialIMG,
       int created) async {
-    Database db = await _startDB();
+    Database db = await dbManagerStartDB();
 
     Map<String, dynamic> fileIntoList = {
       "FileName": fileName,
@@ -131,11 +128,11 @@ class MyDbManager {
     };
 
     await db.insert(listName, fileIntoList,
-        conflictAlgorithm: ConflictAlgorithm.replace);
+        conflictAlgorithm: ConflictAlgorithm.abort);
   }
 
   readFilesOfList(String listName) async {
-    Database db = await _startDB();
+    Database db = await dbManagerStartDB();
 
     List<Map> result = await db.rawQuery('SELECT * FROM $listName');
 
@@ -143,12 +140,12 @@ class MyDbManager {
   }
 
   deleteFileOfList(String listName, String fileName) async {
-    Database db = await _startDB();
+    Database db = await dbManagerStartDB();
     await db.rawQuery('DELETE FROM $listName WHERE FileName=?', [fileName]);
   }
 
   selectFileOfList(String listName, String fileName) async {
-    Database db = await _startDB();
+    Database db = await dbManagerStartDB();
     List<Map> result = await db
         .rawQuery('SELECT * FROM $listName WHERE FileName=?', [fileName]);
 
@@ -159,35 +156,25 @@ class MyDbManager {
 
   /// ############ START DIRECTORIES LIST MANAGEMENT ############
 
-  addDirectoryToDB(String path) async {
-    Database db = await _startDB();
-
+  addDirectoryToDB(String path, Database db) async {
     print('Adding DIR to DB: $path');
     Map<String, dynamic> _mapToDB = {
       "directory_path": path,
     };
 
-    var result = await readListOfDirectories();
+    await db.insert('directories_with_images_or_videos', _mapToDB,
+        conflictAlgorithm: ConflictAlgorithm.abort);
 
-    if (result.toString().contains(path)) {
-      print('DIR already in DB aborting... DIR: $path');
-    } else {
-      await db.insert('directories_with_images_or_videos', _mapToDB,
-          conflictAlgorithm: ConflictAlgorithm.abort);
-    }
+    await createDirectoryOfFiles(path, db);
   }
 
-  readListOfDirectories() async {
-    Database db = await _startDB();
-
-    List<Map> result =
-        await db.rawQuery('SELECT * FROM directories_with_images_or_videos');
+  readListOfDirectories(Database db) async {
+    List<Map> result = await db.query('directories_with_images_or_videos');
 
     return result;
   }
 
-  readDirectoryOfFiles(String path) async {
-    Database db = await _startDB();
+  readDirectoryOfFiles(String path, Database db) async {
     String actualTableName = await _getTableName(path);
 
     print('Reading table $actualTableName');
@@ -197,11 +184,12 @@ class MyDbManager {
     return result;
   }
 
-  createDirectoryOfFiles(String path) async {
-    Database db = await _startDB();
+  createDirectoryOfFiles(String path, Database db) async {
     String actualTableName = await _getTableName(path);
 
     print('Creating table $actualTableName');
+
+    await Future.delayed(Duration(seconds: 1));
 
     await db.execute("CREATE TABLE IF NOT EXISTS $actualTableName ("
         "FileName TEXT PRIMARY KEY,"
@@ -226,8 +214,8 @@ class MyDbManager {
       required String fileOrientation,
       required String videoDuration,
       required String specialIMG,
-      required int created}) async {
-    Database db = await _startDB();
+      required int created,
+      required Database openDB}) async {
     String actualTableName = await _getTableName(path);
 
     Map<String, dynamic> fileToList = {
@@ -242,7 +230,7 @@ class MyDbManager {
     };
 
     print('Inserting file $fileName into table $actualTableName');
-    await db.insert(actualTableName, fileToList,
+    await openDB.insert(actualTableName, fileToList,
         conflictAlgorithm: ConflictAlgorithm.replace);
   }
 

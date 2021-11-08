@@ -18,6 +18,7 @@ import 'package:portrait/screens/openAlbum.dart';
 import 'dart:io';
 import 'package:portrait/screens/openList.dart';
 import 'package:rxdart/rxdart.dart';
+import 'package:sqflite/sqflite.dart';
 
 import 'classes/syncingStream.dart';
 
@@ -26,11 +27,8 @@ void main() {
 }
 
 class MyApp extends StatefulWidget {
-  final MyDbManager dbManager = MyDbManager();
-
   @override
   _MyAppState createState() {
-    dbManager.createDB();
     return _MyAppState();
   }
 }
@@ -60,11 +58,13 @@ class _MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<_MyHomePage>
     with SingleTickerProviderStateMixin {
+  late Database openDB;
   MyDbManager dbManager = MyDbManager();
 
   int animatedTextIndex = 0;
 
   // List with all directories that contains images or videos
+  late List<Map> directoriesInDB;
   List<Directory> usableDirectories = [];
 
   // Animated Text color controllers
@@ -85,15 +85,15 @@ class _MyHomePageState extends State<_MyHomePage>
   @override
   void initState() {
     syncingStream = syncingStreamClass.streamControllerStream;
-    syncFiles = SyncFiles(syncingStreamClass);
+    _openDB();
     _initTextControllers();
-    _loadDirectoriesFromDB();
     super.initState();
   }
 
   @override
   void dispose() {
     syncingStreamClass.closeStream();
+    openDB.close();
     super.dispose();
   }
 
@@ -177,6 +177,13 @@ class _MyHomePageState extends State<_MyHomePage>
     );
   }
 
+  _openDB() async {
+    openDB = await dbManager.dbManagerStartDB();
+    syncFiles = SyncFiles(syncingStreamClass, openDB);
+    _loadDirectoriesFromDB();
+    print('DB Initialized');
+  }
+
   _initTextControllers() {
     colorAnimationController = AnimationController(
         duration: const Duration(milliseconds: 400), vsync: this);
@@ -193,8 +200,15 @@ class _MyHomePageState extends State<_MyHomePage>
   }
 
   _syncDirectories() async {
-    syncFiles.syncDirectories((event) {
+    syncFiles.syncDirectories((event) async {
       if (event == 'done') {
+        for (var element in usableDirectories) {
+          if (directoriesInDB.toString().contains(element.path)) {
+            print('DIR already in DB... DIR: ${element.path}');
+          } else {
+            await dbManager.addDirectoryToDB(element.path, openDB);
+          }
+        }
         syncFiles.syncFiles(usableDirectories);
       } else if (!usableDirectories.toString().contains(event)) {
         usableDirectories.add(Directory(event));
@@ -204,8 +218,8 @@ class _MyHomePageState extends State<_MyHomePage>
   }
 
   _loadDirectoriesFromDB() async {
-    List<Map> result = await dbManager.readListOfDirectories();
-    result.forEach((element) {
+    directoriesInDB = await dbManager.readListOfDirectories(openDB);
+    directoriesInDB.forEach((element) {
       if (!usableDirectories.contains(element['directory_path'])) {
         usableDirectories.add(Directory(element['directory_path']));
         setState(() {});
@@ -269,7 +283,8 @@ class _MyHomePageState extends State<_MyHomePage>
                     context,
                     MaterialPageRoute(
                         builder: (context) => OpenAlbum(
-                            albumsNames: [usableDirectories[index].path])));
+                            albumsNames: [usableDirectories[index].path],
+                            openDB: openDB)));
               },
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

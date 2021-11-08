@@ -20,7 +20,7 @@ dependencies:
   flutter_native_image: ^0.0.5+3
   sqflite: ^2.0.0+4
   chewie: ^1.2.2
-  better_player: ^0.0.77
+  better_player: 0.0.77
   flutter_video_info: ^1.2.0
   panorama: ^0.4.1
   video_compress: ^3.0.0

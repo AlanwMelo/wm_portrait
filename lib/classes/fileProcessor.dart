@@ -9,20 +9,19 @@ import 'package:portrait/classes/checkDir.dart';
 import 'package:portrait/classes/directoryManager.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:portrait/db/dbManager.dart';
+import 'package:sqflite/sqflite.dart';
 import 'package:video_compress/video_compress.dart';
 
 class FileProcessor {
-  generateLocalInfo(String path, {bool forceResync = false}) async {
-    MyDbManager dbManager = MyDbManager();
+  generateLocalInfo(String path, Database openDB,
+      {bool forceResync = false}) async {
     Directory appDir = await getApplicationDocumentsDirectory();
     String thumbPath = await CheckDir().getThumbPath(path);
     String imagesDir = '${appDir.path}/thumbImages/$thumbPath';
 
-    await dbManager.createDirectoryOfFiles(path);
     await CheckDir().createDir(imagesDir);
 
-    List<String> result =
-        DirectoryManager().getImagesAndVideosFromDirectory(path);
+    List<String> result =  await DirectoryManager().getImagesAndVideosFromDirectory(path);
 
     for (var element in result) {
       File thisFile = File(element);
@@ -30,19 +29,19 @@ class FileProcessor {
           (thisFile.path.substring(thisFile.path.lastIndexOf('/') + 1));
 
       if (lookupMimeType(thisFile.path).toString().contains('image')) {
-        await _generateLocalImageInfo(
-            path, thisFile, '$imagesDir$fileName', thumbPath, forceResync);
+        // await _generateLocalImageInfo(
+        //   path, thisFile, '$imagesDir$fileName', thumbPath, forceResync);
       }
       if (lookupMimeType(thisFile.path).toString().contains('video')) {
-        await _generateLocalVideoInfo(
-            path, thisFile, '$imagesDir$fileName', thumbPath, forceResync);
+        /*await _generateLocalVideoInfo(
+            path, thisFile, '$imagesDir$fileName', thumbPath, forceResync);*/
       }
     }
     return true;
   }
 
   _generateLocalImageInfo(String path, File thisFile, String thumbName,
-      String thumbPath, bool forceResync) async {
+      String thumbPath, bool forceResync, Database openDB) async {
     MyDbManager dbManager = MyDbManager();
 
     if (forceResync) {
@@ -146,7 +145,7 @@ class FileProcessor {
               fileOrientation: orientation,
               videoDuration: '',
               specialIMG: specialIMG,
-              created: dateTime.millisecondsSinceEpoch);
+              created: dateTime.millisecondsSinceEpoch, openDB: openDB);
         }
       } catch (e) {
         print(e);
@@ -159,7 +158,7 @@ class FileProcessor {
   }
 
   _generateLocalVideoInfo(String path, File thisFile, String thumbName,
-      String thumbPath, bool forceResync) async {
+      String thumbPath, bool forceResync, Database openDB) async {
     MyDbManager dbManager = MyDbManager();
     String thumbNameWithoutExtension =
         thumbName.substring(0, thumbName.lastIndexOf('.'));
@@ -207,7 +206,7 @@ class FileProcessor {
             fileOrientation: fileOrientation,
             videoDuration: videoLength,
             specialIMG: '',
-            created: thisFile.lastModifiedSync().millisecondsSinceEpoch);
+            created: thisFile.lastModifiedSync().millisecondsSinceEpoch, openDB: openDB);
 
         print('Info generated for video: $thumbName');
       }

@@ -5,17 +5,24 @@ import 'package:flutter/material.dart';
 import 'package:portrait/classes/fileProcessor.dart';
 import 'package:portrait/classes/usableFilesForList.dart';
 import 'package:portrait/db/dbManager.dart';
+import 'package:sqflite/sqflite.dart';
 
 class OpenAlbum extends StatefulWidget {
   final List<String> albumsNames;
+  final Database openDB;
 
-  const OpenAlbum({Key? key, required this.albumsNames}) : super(key: key);
+  const OpenAlbum({Key? key, required this.albumsNames, required this.openDB})
+      : super(key: key);
 
   @override
-  State<StatefulWidget> createState() => _OpenAlbumState();
+  State<StatefulWidget> createState() => _OpenAlbumState(openDB);
 }
 
 class _OpenAlbumState extends State<OpenAlbum> {
+  final Database openDB;
+
+  _OpenAlbumState(this.openDB);
+
   late String displayName;
   List<Map> datedFiles = [];
   List<List> listOfLists = [];
@@ -47,8 +54,10 @@ class _OpenAlbumState extends State<OpenAlbum> {
       centerTitle: true,
       title: GestureDetector(
           onTap: () async {
-            await FileProcessor()
-                .generateLocalInfo(widget.albumsNames[0], forceResync: true);
+            Database openDB = await dbManager.dbManagerStartDB();
+            await FileProcessor().generateLocalInfo(
+                widget.albumsNames[0], openDB,
+                forceResync: true);
           },
           child: Text(displayName)),
       elevation: 0,
@@ -57,7 +66,8 @@ class _OpenAlbumState extends State<OpenAlbum> {
 
   _getFilesOfDir() async {
     /// Create a list with all files mapped with date
-    var result = await dbManager.readDirectoryOfFiles(widget.albumsNames[0]);
+    var result =
+        await dbManager.readDirectoryOfFiles(widget.albumsNames[0], openDB);
 
     for (var element in result) {
       UsableFilesForList usableFile = UsableFilesForList(
