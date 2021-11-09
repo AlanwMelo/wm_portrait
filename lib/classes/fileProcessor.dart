@@ -25,7 +25,7 @@ class FileProcessor {
     List<String> filesInDir =
         await DirectoryManager().getImagesAndVideosFromDirectory(path);
     List<Map> mapOfFilesInDB =
-        await dbManager.readDirectoryOfFiles(path, openDB);
+        await dbManager.readDirectoryFromAllFiles(path, openDB);
     List<String> filesToSync = [];
     List<String> filesToDelete = [];
 
@@ -165,7 +165,7 @@ class FileProcessor {
               thisFile.path, '$thumbName',
               quality: 20);
 
-          await dbManager.insertDirectoryOfFiles(
+          await dbManager.insertIntoAllFiles(
               path: path,
               fileName: fileName,
               fileType: 'image',
@@ -232,7 +232,7 @@ class FileProcessor {
         await Future.delayed(duration);
         thumbnailFile.copy('$thumbNameWithoutExtension.jpg');
 
-        await dbManager.insertDirectoryOfFiles(
+        await dbManager.insertIntoAllFiles(
             path: path,
             fileName: info.title!,
             fileType: 'video',

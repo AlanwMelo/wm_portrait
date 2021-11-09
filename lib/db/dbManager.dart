@@ -19,18 +19,35 @@ class MyDbManager {
       // constructed for each platform.
       join(await getDatabasesPath(), _databaseName),
       onCreate: (db, version) async {
-        await db.execute("CREATE TABLE IF NOT EXISTS List_of_Lists ("
-            "ID INTEGER PRIMARY KEY AUTOINCREMENT,"
-            "list_name TEXT,"
-            "list_path TEXT,"
-            "created TEXT"
-            ")");
-
         await db.execute(
             "CREATE TABLE IF NOT EXISTS directories_with_images_or_videos ("
             "ID INTEGER PRIMARY KEY AUTOINCREMENT,"
-            "directory_path TEXT,"
-            "modified NUMERIC"
+            "DirectoryPath TEXT,"
+            "Modified NUMERIC"
+            ")");
+
+        await db.execute("CREATE TABLE IF NOT EXISTS presentations_lists ("
+            "ID INTEGER PRIMARY KEY AUTOINCREMENT,"
+            "ListName TEXT,"
+            "Created NUMERIC"
+            ")");
+
+        await db.execute("CREATE TABLE IF NOT EXISTS presentation_files ("
+            "ID INTEGER PRIMARY KEY AUTOINCREMENT,"
+            "ListName TEXT,"
+            "FilePath TEXT"
+            ")");
+
+        await db.execute("CREATE TABLE IF NOT EXISTS device_files ("
+            "ID INTEGER PRIMARY KEY AUTOINCREMENT,"
+            "FileName TEXT,"
+            "FileType TEXT,"
+            "FilePath TEXT,"
+            "ThumbPath TEXT,"
+            "FileOrientation TEXT,"
+            "VideoDuration TEXT,"
+            "SpecialIMG TEXT,"
+            "Created NUMERIC"
             ")");
       },
       version: _dbVersion,
@@ -40,20 +57,18 @@ class MyDbManager {
     return finalDB;
   }
 
-  /// ############ START TB - LISTS ############
+  /// ############ START PRESENTATIONS MANAGEMENT ############
 
-  createNewList(String listName, String listPath, String created) async {
-    // table = List_of_Lists
-    Database db = await dbManagerStartDB();
-
+  createNewPresentation(String listName, Database db, int created) async {
     Map<String, dynamic> _newList = {
-      "list_name": listName,
-      "list_path": listName,
-      "created": created,
+      "ListName": listName,
+      "Created": created,
     };
 
-    await db.insert('List_of_Lists', _newList,
+    await db.insert('presentations_lists', _newList,
         conflictAlgorithm: ConflictAlgorithm.abort);
+
+    return true;
   }
 
   createListOfFiles(String listName) async {
@@ -76,13 +91,13 @@ class MyDbManager {
     Database db = await dbManagerStartDB();
 
     Map<String, dynamic> _updatedList = {
-      "list_name": listName,
+      "ListName": listName,
       "list_path": listPath,
-      "created": created,
+      "Created": created,
     };
 
     await db.update('List_of_Lists', _updatedList,
-        where: 'list_name=?', whereArgs: [listName]);
+        where: 'ListName=?', whereArgs: [listName]);
   }
 
   readListOfLists() async {
@@ -97,11 +112,11 @@ class MyDbManager {
     Database db = await dbManagerStartDB();
 
     await db
-        .rawQuery('DELETE FROM List_of_Lists WHERE listName=?', ['$listName']);
+        .rawQuery('DELETE FROM List_of_Lists WHERE ListName=?', ['$listName']);
     await db.execute("DROP TABLE IF EXISTS $listName");
   }
 
-  /// ############ END TB - LISTS ############
+  /// ############ EDN PRESENTATIONS MANAGEMENT ############
 
   /// ############ START LIST MANAGEMENT ############
 
@@ -155,19 +170,65 @@ class MyDbManager {
 
   /// ############ END LIST MANAGEMENT ############
 
+  /// ############ START FILES MANAGEMENT ############
+
+  insertIntoAllFiles(
+      {required String path,
+      required String fileName,
+      required String fileType,
+      required String filePath,
+      required String thumbPath,
+      required String fileOrientation,
+      required String videoDuration,
+      required String specialIMG,
+      required int created,
+      required Database openDB}) async {
+    Map<String, dynamic> fileToList = {
+      "FileName": fileName,
+      "FileType": fileType,
+      "FilePath": filePath,
+      "ThumbPath": thumbPath,
+      "FileOrientation": fileOrientation,
+      "VideoDuration": videoDuration,
+      "SpecialIMG": specialIMG,
+      "Created": created,
+    };
+
+    print('Inserting file $fileName into table device_files');
+    await openDB.insert('device_files', fileToList,
+        conflictAlgorithm: ConflictAlgorithm.replace);
+  }
+
+  readFromAllFiles(Database openDB) {}
+
+  readDirectoryFromAllFiles(String path, Database openDB) async {
+    print('Reading from device_files where dir = $path');
+
+    List<Map> result = await openDB.query(
+      'device_files',
+      distinct: true,
+      where: 'FilePath LIKE ?',
+      whereArgs: ['%$path%'],
+    );
+
+    return result;
+  }
+
+  /// ############ END FILES MANAGEMENT ############
+
   /// ############ START DIRECTORIES LIST MANAGEMENT ############
 
   addDirectoryToDB(String path, Database db, int modified) async {
     print('Adding DIR to DB: $path');
     Map<String, dynamic> _mapToDB = {
-      "directory_path": path,
-      "modified": modified
+      "DirectoryPath": path,
+      "Modified": modified
     };
 
     await db.insert('directories_with_images_or_videos', _mapToDB,
         conflictAlgorithm: ConflictAlgorithm.abort);
 
-    await createDirectoryOfFiles(path, db);
+    return true;
   }
 
   readListOfDirectories(Database db) async {
@@ -185,25 +246,6 @@ class MyDbManager {
     List<Map> result = await openDB.rawQuery('SELECT * FROM $actualTableName');
 
     return result;
-  }
-
-  createDirectoryOfFiles(String path, Database db) async {
-    String actualTableName = await _getTableName(path);
-
-    print('Creating table $actualTableName');
-
-    await db.execute("CREATE TABLE IF NOT EXISTS $actualTableName ("
-        "FileName TEXT PRIMARY KEY,"
-        "FileType TEXT,"
-        "FilePath TEXT,"
-        "ThumbPath TEXT,"
-        "FileOrientation TEXT,"
-        "VideoDuration TEXT,"
-        "SpecialIMG TEXT,"
-        "Created NUMERIC"
-        ")");
-
-    return true;
   }
 
   insertDirectoryOfFiles(
@@ -235,8 +277,6 @@ class MyDbManager {
         conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
-  /// ############ START DIRECTORIES LIST MANAGEMENT ############
-
   _transformDirInTableName(String dirName) {
     dirName = dirName.replaceAll(RegExp('[^A-Za-z0-9]'), '_');
 
@@ -249,4 +289,7 @@ class MyDbManager {
     thumbPath = _transformDirInTableName(thumbPath);
     return thumbPath;
   }
+
+  /// ############ END DIRECTORIES LIST MANAGEMENT ############
+
 }

@@ -7,10 +7,10 @@ import 'package:portrait/screens/openAlbum.dart';
 import 'package:sqflite/sqflite.dart';
 
 class AlbumsList extends StatelessWidget {
-  final List<Directory> directories;
+  final List albumFolders;
   final Database openDB;
 
-  const AlbumsList({Key? key, required this.directories, required this.openDB})
+  const AlbumsList({Key? key, required this.albumFolders, required this.openDB})
       : super(key: key);
 
   @override
@@ -18,7 +18,7 @@ class AlbumsList extends StatelessWidget {
     return Container(
       padding: EdgeInsets.all(6),
       child: GridView.builder(
-          itemCount: directories.length,
+          itemCount: albumFolders.length,
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             childAspectRatio: 1 / 1.2,
             crossAxisSpacing: 6,
@@ -32,7 +32,7 @@ class AlbumsList extends StatelessWidget {
                     context,
                     MaterialPageRoute(
                         builder: (context) => OpenAlbum(
-                            albumsNames: [directories[index].path],
+                            albumsNames: [albumFolders[index].path],
                             openDB: openDB)));
               },
               child: Column(
@@ -51,11 +51,13 @@ class AlbumsList extends StatelessWidget {
   }
 
   _albumsName(int index) {
-    String dirName = directories[index].path;
-    dirName = dirName.substring(0, dirName.lastIndexOf('/'));
-    dirName = dirName.substring(dirName.lastIndexOf('/') + 1);
+    if (albumFolders.runtimeType.toString() == 'List<Directory>') {
+      String dirName = albumFolders[index].path;
+      dirName = dirName.substring(0, dirName.lastIndexOf('/'));
+      dirName = dirName.substring(dirName.lastIndexOf('/') + 1);
 
-    return Text(dirName,
-        style: TextStyle(fontSize: 15, fontFamily: 'RobotoMono'));
+      return Text(dirName,
+          style: TextStyle(fontSize: 15, fontFamily: 'RobotoMono'));
+    }
   }
 }

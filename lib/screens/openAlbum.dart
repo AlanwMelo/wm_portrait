@@ -137,8 +137,11 @@ class _OpenAlbumState extends State<OpenAlbum> {
 
   _getFilesOfDir() async {
     /// Create a list with all files mapped with date
-    var result =
-        await dbManager.readDirectoryOfFiles(widget.albumsNames[0], openDB);
+    /*var result =
+        await dbManager.readDirectoryOfFiles(widget.albumsNames[4], openDB);*/
+
+    var result = await dbManager.readDirectoryFromAllFiles(
+        widget.albumsNames[0], openDB);
 
     for (var element in result) {
       UsableFilesForList usableFile = UsableFilesForList(
@@ -231,7 +234,7 @@ class _OpenAlbumState extends State<OpenAlbum> {
                   crossAxisSpacing: 1,
                   mainAxisSpacing: 1,
                   crossAxisCount:
-                  (MediaQuery.of(context).size.width / 120).round(),
+                      (MediaQuery.of(context).size.width / 120).round(),
                 ),
                 itemBuilder: (BuildContext context, int itemIndex) {
                   UsableFilesForList usableFile =
@@ -352,7 +355,8 @@ class _ImageBuilderState extends State<_ImageBuilder> {
         key: Key('secondImage'),
         height: 150,
         width: 150,
-        child: Image.file(image, fit: BoxFit.cover, cacheWidth: 150, height: 150));
+        child:
+            Image.file(image, fit: BoxFit.cover, cacheWidth: 200, height: 200));
 
     /// Checa se o widget esta montado antes de chamar o setstate
     if (this.mounted) {

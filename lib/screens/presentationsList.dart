@@ -1,18 +1,31 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:portrait/db/dbManager.dart';
+import 'package:portrait/screens/albumsList.dart';
 import 'package:portrait/classes/textStyle.dart';
+import 'package:sqflite/sqflite.dart';
 
 class PresentationsList extends StatefulWidget {
+  final Database openDB;
+
+  const PresentationsList({Key? key, required this.openDB}) : super(key: key);
+
   @override
-  State<StatefulWidget> createState() => _PresentationsListState();
+  State<StatefulWidget> createState() => _PresentationsListState(openDB);
 }
 
 class _PresentationsListState extends State<PresentationsList> {
-  List presentationsList = [];
+  final Database openDB;
+
+  _PresentationsListState(this.openDB);
+
+  MyDbManager dbManager = MyDbManager();
+  List presentationsList = ['Lista Total'];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      floatingActionButton: _floatingActionButton(),
       body: SafeArea(
           child: Container(
         child: Column(
@@ -47,8 +60,12 @@ class _PresentationsListState extends State<PresentationsList> {
   }
 
   _body() {
-    print(presentationsList.isEmpty);
-    return presentationsList.isEmpty ? Container() : Container();
+    return presentationsList.isEmpty
+        ? Container()
+        : Expanded(
+            child: Container(
+                child: AlbumsList(
+                    albumFolders: presentationsList, openDB: openDB)));
   }
 
   _newPresentationButton() {
@@ -56,7 +73,7 @@ class _PresentationsListState extends State<PresentationsList> {
       height: 175,
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
-            primary: Colors.lightBlue, shape: CircleBorder()),
+            primary: Colors.blueAccent, shape: CircleBorder()),
         onPressed: () async {
           /*showDialog(
               barrierDismissible: false,
@@ -80,5 +97,13 @@ class _PresentationsListState extends State<PresentationsList> {
         )),
       ),
     );
+  }
+
+  _floatingActionButton() {
+    return FloatingActionButton(onPressed: () {
+      dbManager.createNewPresentation('lista Total', openDB, DateTime.now().millisecondsSinceEpoch);
+
+
+    });
   }
 }

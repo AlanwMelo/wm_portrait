@@ -6,7 +6,7 @@ import 'package:file_manager/file_manager.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:portrait/classes/albumsList.dart';
+import 'package:portrait/screens/albumsList.dart';
 import 'package:portrait/classes/appColors.dart';
 import 'package:portrait/classes/clipRecct.dart';
 import 'package:portrait/classes/directoryManager.dart';
@@ -142,7 +142,7 @@ class _MyHomePageState extends State<_MyHomePage>
                             Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                    builder: (context) => PresentationsList()));
+                                    builder: (context) => PresentationsList(openDB: openDB,)));
                           },
                           child:
                           Container(child: Icon(Icons.more_vert_rounded))),
@@ -218,7 +218,7 @@ class _MyHomePageState extends State<_MyHomePage>
 
             int lastModified = await directoriesInDB.firstWhere(
                     (directoriesInDBElement) => directoriesInDBElement
-                    .containsValue(element.path))['modified'];
+                    .containsValue(element.path))['Modified'];
 
             if (lastModified !=
                 element.statSync().modified.millisecondsSinceEpoch) {
@@ -232,7 +232,7 @@ class _MyHomePageState extends State<_MyHomePage>
           }
         }
         await syncFiles.syncFiles(
-            [usableDirectories[1]]); // trocar para directoriesToUpdate
+            [usableDirectories[4]]); // trocar para directoriesToUpdate
       } else if (!usableDirectories.toString().contains(event)) {
         usableDirectories.add(Directory(event));
         setState(() {});
@@ -243,8 +243,8 @@ class _MyHomePageState extends State<_MyHomePage>
   _loadDirectoriesFromDB() async {
     directoriesInDB = await dbManager.readListOfDirectories(openDB);
     for (var element in directoriesInDB) {
-      if (!usableDirectories.contains(element['directory_path'])) {
-        usableDirectories.add(Directory(element['directory_path']));
+      if (!usableDirectories.contains(element['DirectoryPath'])) {
+        usableDirectories.add(Directory(element['DirectoryPath']));
         setState(() {});
       }
     }
@@ -291,7 +291,7 @@ class _MyHomePageState extends State<_MyHomePage>
   }
 
   _albums() {
-    return AlbumsList(directories: usableDirectories, openDB: openDB);
+    return AlbumsList(albumFolders: usableDirectories, openDB: openDB);
   }
 
 
