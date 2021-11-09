@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'directoryManager.dart';
 
-class CheckDir{
+class CheckDir {
   ///Verifica se existe/cria o diretório
   createDir(String dirPath) async {
     if (await Directory(dirPath).exists()) {
@@ -20,13 +20,16 @@ class CheckDir{
   }
 
   getThumbPath(String path) async {
-    Directory internalStorage = await DirectoryManager().getInternalStoragePath();
-    Directory externalStorage = await DirectoryManager().getExternalStoragePath();
+    Directory internalStorage =
+        await DirectoryManager().getInternalStoragePath();
+    Directory? externalStorage =
+        await DirectoryManager().getExternalStoragePath();
 
     path = path.replaceAll(internalStorage.path, 'internal');
-    path = path.replaceAll(externalStorage.path, 'external');
+    if (externalStorage != null) {
+      path = path.replaceAll(externalStorage.path, 'external');
+    }
 
     return path;
   }
-
 }

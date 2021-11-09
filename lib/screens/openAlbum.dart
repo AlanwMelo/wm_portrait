@@ -231,7 +231,7 @@ class _OpenAlbumState extends State<OpenAlbum> {
                   crossAxisSpacing: 1,
                   mainAxisSpacing: 1,
                   crossAxisCount:
-                      (MediaQuery.of(context).size.width / 120).round(),
+                  (MediaQuery.of(context).size.width / 120).round(),
                 ),
                 itemBuilder: (BuildContext context, int itemIndex) {
                   UsableFilesForList usableFile =
@@ -352,7 +352,7 @@ class _ImageBuilderState extends State<_ImageBuilder> {
         key: Key('secondImage'),
         height: 150,
         width: 150,
-        child: Image(image: FileImage(image), fit: BoxFit.cover));
+        child: Image.file(image, fit: BoxFit.cover, cacheWidth: 150, height: 150));
 
     /// Checa se o widget esta montado antes de chamar o setstate
     if (this.mounted) {
