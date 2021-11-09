@@ -223,7 +223,7 @@ class _MyHomePageState extends State<_MyHomePage>
                 element.statSync().modified.millisecondsSinceEpoch);
           }
         }
-        await syncFiles.syncFiles([usableDirectories[0]]); // trocar para directoriesToUpdate
+        await syncFiles.syncFiles([usableDirectories[4]]); // trocar para directoriesToUpdate
       } else if (!usableDirectories.toString().contains(event)) {
         usableDirectories.add(Directory(event));
         setState(() {});

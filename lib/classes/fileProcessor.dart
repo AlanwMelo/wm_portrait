@@ -163,7 +163,7 @@ class FileProcessor {
         } else {
           await FlutterImageCompress.compressAndGetFile(
               thisFile.path, '$thumbName',
-              quality: 25);
+              quality: 20);
 
           await dbManager.insertDirectoryOfFiles(
               path: path,
@@ -225,7 +225,7 @@ class FileProcessor {
         /// Generates Thumbnail for videos
         final thumbnailFile =
             await VideoCompress.getFileThumbnail(thisFile.path,
-                quality: 30, // default(100)
+                quality: 20, // default(100)
                 position: 0 // default(-1)
                 );
 

@@ -26,6 +26,7 @@ class _OpenAlbumState extends State<OpenAlbum> {
   late String displayName;
   List<Map> datedFiles = [];
   List<List> listOfLists = [];
+  List allFiles = [];
 
   MyDbManager dbManager = MyDbManager();
 
@@ -40,12 +41,82 @@ class _OpenAlbumState extends State<OpenAlbum> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: _appBar(),
-        body: ListView.builder(
-          shrinkWrap: true,
-          itemCount: listOfLists.length,
-          itemBuilder: (context, index) {
-            return Container(child: _imagesOfTheDay(index));
-          },
+        body: Container(
+          child: GridView.builder(
+              shrinkWrap: true,
+              itemCount: allFiles.length,
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                childAspectRatio: 1,
+                crossAxisSpacing: 1,
+                mainAxisSpacing: 1,
+                crossAxisCount:
+                    (MediaQuery.of(context).size.width / 120).round(),
+              ),
+              itemBuilder: (BuildContext context, int itemIndex) {
+                return GestureDetector(
+                    onTap: () {},
+                    child: Stack(fit: StackFit.expand, children: [
+                      _ImageBuilder(image: allFiles[itemIndex][1]),
+                      Container(
+                          child: Column(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                            allFiles[itemIndex][0].fileType == 'video'
+                                ? Row(
+                                    children: [
+                                      Container(
+                                        margin:
+                                            EdgeInsets.only(left: 6, bottom: 6),
+                                        child: Icon(Icons.play_circle_fill,
+                                            size: 15, color: Colors.white),
+                                      ),
+                                    ],
+                                  )
+                                : Container(),
+                            allFiles[itemIndex][0].specialIMG == 'true'
+                                ? Row(
+                                    children: [
+                                      Container(
+                                          margin: EdgeInsets.only(
+                                              left: 6, bottom: 6),
+                                          child: Image.asset(
+                                              "lib/assets/icons/360-graus.png",
+                                              color: Colors.white,
+                                              height: 15)),
+                                    ],
+                                  )
+                                : Container(),
+                            Container(
+                                color: Colors.black.withOpacity(0.3),
+                                height: 20,
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      child: Container(
+                                          margin: EdgeInsets.only(left: 4),
+                                          child: allFiles[itemIndex][0]
+                                                      .fileName
+                                                      .length >=
+                                                  14
+                                              ? Text(
+                                                  allFiles[itemIndex][0]
+                                                      .fileName,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                  style: TextStyle(
+                                                      color: Colors.white),
+                                                )
+                                              : Text(
+                                                  allFiles[itemIndex][0]
+                                                      .fileName,
+                                                  style: TextStyle(
+                                                      color: Colors.white))),
+                                    )
+                                  ],
+                                ))
+                          ]))
+                    ]));
+              }),
         ));
   }
 
@@ -80,16 +151,23 @@ class _OpenAlbumState extends State<OpenAlbum> {
           element['SpecialIMG'],
           element['Created']);
 
-      DateTime getConvertedDate =
-          DateTime.fromMillisecondsSinceEpoch(usableFile.createdDate);
+      File thumbFile = File(element['ThumbPath']);
+
+      allFiles.add([usableFile, thumbFile]);
+      allFiles.sort((a, b) => b[0].createdDate.compareTo(a[0].createdDate));
+      setState(() {});
+
+      /*DateTime getConvertedDate =
+      DateTime.fromMillisecondsSinceEpoch(usableFile.createdDate);
       String convertedDate =
           '${getConvertedDate.day.toString().padLeft(2, '0')}/${getConvertedDate.month}/${getConvertedDate.year}';
       Map mapWithDates =
-          await _createMap(element['Created'], convertedDate, usableFile);
+      await _createMap(element['Created'], convertedDate, usableFile);
 
-      datedFiles.add(mapWithDates);
+      datedFiles.add(mapWithDates);*/
     }
-    _createLists();
+
+    // _createLists();
   }
 
   _createLists() {
@@ -147,7 +225,6 @@ class _OpenAlbumState extends State<OpenAlbum> {
             margin: EdgeInsets.only(top: 6),
             child: GridView.builder(
                 physics: ScrollPhysics(),
-                shrinkWrap: true,
                 itemCount: listOfLists[listIndex].length,
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                   childAspectRatio: 1,
@@ -228,5 +305,58 @@ class _OpenAlbumState extends State<OpenAlbum> {
 
   _dateText(String text) {
     return Text(text, style: TextStyle(fontFamily: 'RobotoMono', fontSize: 13));
+  }
+}
+
+class _ImageBuilder extends StatefulWidget {
+  final File image;
+
+  const _ImageBuilder({Key? key, required this.image}) : super(key: key);
+
+  @override
+  State<StatefulWidget> createState() => _ImageBuilderState(image);
+}
+
+/// Carrega primeiro uma imagem de qualidade ruim e somente depois uma com qualidade boa para poupar memória
+class _ImageBuilderState extends State<_ImageBuilder> {
+  final File image;
+
+  _ImageBuilderState(this.image);
+
+  late Widget child;
+
+  @override
+  void initState() {
+    child = Container(
+        key: Key('firstImage'),
+        height: 150,
+        width: 150,
+        child:
+            Image.file(image, fit: BoxFit.cover, cacheWidth: 60, height: 60));
+    _fullImageLoader();
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 2000),
+      child: child,
+      switchInCurve: Curves.ease,
+    );
+  }
+
+  _fullImageLoader() async {
+    await Future.delayed(Duration(seconds: 1));
+    child = Container(
+        key: Key('secondImage'),
+        height: 150,
+        width: 150,
+        child: Image(image: FileImage(image), fit: BoxFit.cover));
+
+    /// Checa se o widget esta montado antes de chamar o setstate
+    if (this.mounted) {
+      setState(() {});
+    }
   }
 }
