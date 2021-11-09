@@ -6,17 +6,20 @@ import 'package:file_manager/file_manager.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:portrait/classes/albumsList.dart';
 import 'package:portrait/classes/appColors.dart';
 import 'package:portrait/classes/clipRecct.dart';
 import 'package:portrait/classes/directoryManager.dart';
 import 'package:portrait/classes/fileProcessor.dart';
 import 'package:portrait/classes/floatingLoadingBarForStack.dart';
 import 'package:portrait/classes/syncFiles.dart';
+import 'package:portrait/classes/textStyle.dart';
 import 'package:portrait/colorScreen.dart';
 import 'package:portrait/db/dbManager.dart';
 import 'package:portrait/screens/openAlbum.dart';
 import 'dart:io';
 import 'package:portrait/screens/openList.dart';
+import 'package:portrait/screens/presentationsList.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:sqflite/sqflite.dart';
 
@@ -119,14 +122,16 @@ class _MyHomePageState extends State<_MyHomePage>
                                   colorAnimationController.reverse();
                                   swiperController.move(0);
                                 },
-                                child: _topText('Photos', photoAnimation.value),
+                                child: PortraitTextStyle()
+                                    .topText('Photos', photoAnimation.value),
                               ),
                               GestureDetector(
                                 onTap: () {
                                   colorAnimationController.forward();
                                   swiperController.move(1);
                                 },
-                                child: _topText('Albums', albumAnimation.value),
+                                child: PortraitTextStyle()
+                                    .topText('Albums', albumAnimation.value),
                               ),
                             ],
                           ),
@@ -134,17 +139,20 @@ class _MyHomePageState extends State<_MyHomePage>
                       ),
                       GestureDetector(
                           onTap: () {
-                            print('ayaya');
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => PresentationsList()));
                           },
                           child:
-                              Container(child: Icon(Icons.more_vert_rounded))),
+                          Container(child: Icon(Icons.more_vert_rounded))),
                     ],
                   ),
                 ),
                 Expanded(
                   child: Container(
                     child:
-                        NotificationListener<OverscrollIndicatorNotification>(
+                    NotificationListener<OverscrollIndicatorNotification>(
                       //Removes glow animation on overscroll
                       onNotification:
                           (OverscrollIndicatorNotification? overscroll) {
@@ -209,7 +217,7 @@ class _MyHomePageState extends State<_MyHomePage>
             print('DIR already in DB... DIR: ${element.path}');
 
             int lastModified = await directoriesInDB.firstWhere(
-                (directoriesInDBElement) => directoriesInDBElement
+                    (directoriesInDBElement) => directoriesInDBElement
                     .containsValue(element.path))['modified'];
 
             if (lastModified !=
@@ -223,7 +231,8 @@ class _MyHomePageState extends State<_MyHomePage>
                 element.statSync().modified.millisecondsSinceEpoch);
           }
         }
-        await syncFiles.syncFiles([usableDirectories[1]]); // trocar para directoriesToUpdate
+        await syncFiles.syncFiles(
+            [usableDirectories[1]]); // trocar para directoriesToUpdate
       } else if (!usableDirectories.toString().contains(event)) {
         usableDirectories.add(Directory(event));
         setState(() {});
@@ -282,56 +291,9 @@ class _MyHomePageState extends State<_MyHomePage>
   }
 
   _albums() {
-    return Container(
-      padding: EdgeInsets.all(6),
-      child: GridView.builder(
-          itemCount: usableDirectories.length,
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            childAspectRatio: 1 / 1.2,
-            crossAxisSpacing: 6,
-            mainAxisSpacing: 6,
-            crossAxisCount: (MediaQuery.of(context).size.width / 120).round(),
-          ),
-          itemBuilder: (BuildContext context, int index) {
-            return GestureDetector(
-              onTap: () {
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => OpenAlbum(
-                            albumsNames: [usableDirectories[index].path],
-                            openDB: openDB)));
-              },
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                      child: Container(
-                          child: MyClipRRect().myClipRRect(
-                              Container(color: Colors.blueAccent)))),
-                  Container(height: 40, child: _albumsName(index))
-                ],
-              ),
-            );
-          }),
-    );
+    return AlbumsList(directories: usableDirectories, openDB: openDB);
   }
 
-  _topText(String s, Color? color) {
-    return Text(
-      s,
-      style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold, color: color),
-    );
-  }
-
-  _albumsName(int index) {
-    String dirName = usableDirectories[index].path;
-    dirName = dirName.substring(0, dirName.lastIndexOf('/'));
-    dirName = dirName.substring(dirName.lastIndexOf('/') + 1);
-
-    return Text(dirName,
-        style: TextStyle(fontSize: 15, fontFamily: 'RobotoMono'));
-  }
 
   Stream<String> syncingFilesStream() async* {}
 }
