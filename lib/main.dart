@@ -142,17 +142,19 @@ class _MyHomePageState extends State<_MyHomePage>
                             Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                    builder: (context) => PresentationsList(openDB: openDB,)));
+                                    builder: (context) => PresentationsList(
+                                          openDB: openDB,
+                                        )));
                           },
                           child:
-                          Container(child: Icon(Icons.more_vert_rounded))),
+                              Container(child: Icon(Icons.more_vert_rounded))),
                     ],
                   ),
                 ),
                 Expanded(
                   child: Container(
                     child:
-                    NotificationListener<OverscrollIndicatorNotification>(
+                        NotificationListener<OverscrollIndicatorNotification>(
                       //Removes glow animation on overscroll
                       onNotification:
                           (OverscrollIndicatorNotification? overscroll) {
@@ -217,7 +219,7 @@ class _MyHomePageState extends State<_MyHomePage>
             print('DIR already in DB... DIR: ${element.path}');
 
             int lastModified = await directoriesInDB.firstWhere(
-                    (directoriesInDBElement) => directoriesInDBElement
+                (directoriesInDBElement) => directoriesInDBElement
                     .containsValue(element.path))['Modified'];
 
             if (lastModified !=
@@ -291,9 +293,18 @@ class _MyHomePageState extends State<_MyHomePage>
   }
 
   _albums() {
-    return AlbumsList(albumFolders: usableDirectories, openDB: openDB);
+    return AlbumsList(
+      albumFolders: usableDirectories,
+      openDB: openDB,
+      itemTapped: (selectedAlbum) {
+        Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) => OpenAlbum(
+                    albumsNames: [selectedAlbum], openDB: openDB)));
+      },
+    );
   }
-
 
   Stream<String> syncingFilesStream() async* {}
 }

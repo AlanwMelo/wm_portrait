@@ -35,7 +35,14 @@ class MyDbManager {
         await db.execute("CREATE TABLE IF NOT EXISTS presentation_files ("
             "ID INTEGER PRIMARY KEY AUTOINCREMENT,"
             "ListName TEXT,"
-            "FilePath TEXT"
+            "FileName TEXT,"
+            "FileType TEXT,"
+            "FilePath TEXT,"
+            "ThumbPath TEXT,"
+            "FileOrientation TEXT,"
+            "VideoDuration TEXT,"
+            "SpecialIMG TEXT,"
+            "Created NUMERIC"
             ")");
 
         await db.execute("CREATE TABLE IF NOT EXISTS device_files ("
@@ -71,104 +78,44 @@ class MyDbManager {
     return true;
   }
 
-  createListOfFiles(String listName) async {
-    Database db = await dbManagerStartDB();
-    await db.execute("CREATE TABLE IF NOT EXISTS $listName ("
-        "ID INTEGER PRIMARY KEY AUTOINCREMENT,"
-        "FileName TEXT,"
-        "FileType TEXT,"
-        "FilePath TEXT,"
-        "FileOrientation TEXT,"
-        "VideoDuration TEXT,"
-        "OriginDevice TEXT,"
-        "SpecialIMG TEXT,"
-        "Created NUMERIC"
-        ")");
-  }
-
-  updateList(String listName, String listPath, String created) async {
-    // table = List_of_Lists
-    Database db = await dbManagerStartDB();
-
-    Map<String, dynamic> _updatedList = {
-      "ListName": listName,
-      "list_path": listPath,
-      "Created": created,
-    };
-
-    await db.update('List_of_Lists', _updatedList,
-        where: 'ListName=?', whereArgs: [listName]);
-  }
-
-  readListOfLists() async {
-    Database db = await dbManagerStartDB();
-
-    List<Map> result = await db.rawQuery('SELECT * FROM List_of_Lists');
-
-    return result;
-  }
-
-  deleteList(String listName) async {
-    Database db = await dbManagerStartDB();
-
-    await db
-        .rawQuery('DELETE FROM List_of_Lists WHERE ListName=?', ['$listName']);
-    await db.execute("DROP TABLE IF EXISTS $listName");
-  }
-
-  /// ############ EDN PRESENTATIONS MANAGEMENT ############
-
-  /// ############ START LIST MANAGEMENT ############
-
-  insertFileIntoList(
+  insertIntoPresentationFiles(
       String listName,
       String fileName,
       String fileType,
       String filePath,
+      String thumbPath,
       String fileOrientation,
       String videoDuration,
-      String originDevice,
       String specialIMG,
-      int created) async {
-    Database db = await dbManagerStartDB();
+      int created,
+      Database db) async {
+    print('File $filePath inserted into presentation $listName');
 
     Map<String, dynamic> fileIntoList = {
-      "FileName": fileName,
+      "ListName": listName,
       "FileType": fileType,
+      "FileName": fileName,
       "FilePath": filePath,
+      "ThumbPath": thumbPath,
       "FileOrientation": fileOrientation,
       "VideoDuration": videoDuration,
-      "OriginDevice": originDevice,
       "SpecialIMG": specialIMG,
       "Created": created,
     };
 
-    await db.insert(listName, fileIntoList,
+    await db.insert('presentation_files', fileIntoList,
         conflictAlgorithm: ConflictAlgorithm.abort);
+
+    return true;
   }
 
-  readFilesOfList(String listName) async {
-    Database db = await dbManagerStartDB();
-
-    List<Map> result = await db.rawQuery('SELECT * FROM $listName');
-
+  readFromPresentation(String presentationName, Database db) async {
+    List<Map> result = await db.query('presentation_files',
+        where: "ListName=?", whereArgs: [presentationName]);
     return result;
   }
 
-  deleteFileOfList(String listName, String fileName) async {
-    Database db = await dbManagerStartDB();
-    await db.rawQuery('DELETE FROM $listName WHERE FileName=?', [fileName]);
-  }
-
-  selectFileOfList(String listName, String fileName) async {
-    Database db = await dbManagerStartDB();
-    List<Map> result = await db
-        .rawQuery('SELECT * FROM $listName WHERE FileName=?', [fileName]);
-
-    return result;
-  }
-
-  /// ############ END LIST MANAGEMENT ############
+  /// ############ EDN PRESENTATIONS MANAGEMENT ############
 
   /// ############ START FILES MANAGEMENT ############
 
@@ -199,14 +146,22 @@ class MyDbManager {
         conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
-  readFromAllFiles(Database openDB) {}
+  readFileFromDB(String filePath, Database db) async {
+    List<Map> result = await db
+        .query('device_files', where: "FilePath=?", whereArgs: [filePath]);
+    return result;
+  }
+
+  readAllFromAllFiles(Database openDB) async {
+    List<Map> result = await openDB.query('device_files');
+    return result;
+  }
 
   readDirectoryFromAllFiles(String path, Database openDB) async {
     print('Reading from device_files where dir = $path');
 
     List<Map> result = await openDB.query(
       'device_files',
-      distinct: true,
       where: 'FilePath LIKE ?',
       whereArgs: ['%$path%'],
     );

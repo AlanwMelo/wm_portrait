@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:portrait/db/dbManager.dart';
 import 'package:portrait/screens/albumsList.dart';
 import 'package:portrait/classes/textStyle.dart';
+import 'package:portrait/screens/openPresentation.dart';
 import 'package:sqflite/sqflite.dart';
 
 class PresentationsList extends StatefulWidget {
@@ -20,7 +21,7 @@ class _PresentationsListState extends State<PresentationsList> {
   _PresentationsListState(this.openDB);
 
   MyDbManager dbManager = MyDbManager();
-  List presentationsList = ['Lista Total'];
+  List<String> presentationsList = ['lista Total'];
 
   @override
   Widget build(BuildContext context) {
@@ -65,7 +66,18 @@ class _PresentationsListState extends State<PresentationsList> {
         : Expanded(
             child: Container(
                 child: AlbumsList(
-                    albumFolders: presentationsList, openDB: openDB)));
+            albumFolders: presentationsList,
+            openDB: openDB,
+            presentation: true,
+            itemTapped: (selectedPresentation) {
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => OpenPresentation(
+                          presentationName: selectedPresentation,
+                          openDB: openDB)));
+            },
+          )));
   }
 
   _newPresentationButton() {
@@ -100,10 +112,23 @@ class _PresentationsListState extends State<PresentationsList> {
   }
 
   _floatingActionButton() {
-    return FloatingActionButton(onPressed: () {
-      dbManager.createNewPresentation('lista Total', openDB, DateTime.now().millisecondsSinceEpoch);
-
-
+    return FloatingActionButton(onPressed: () async {
+      await dbManager.createNewPresentation(
+          'lista Total', openDB, DateTime.now().millisecondsSinceEpoch);
+      var result = await dbManager.readAllFromAllFiles(openDB);
+      for (var element in result) {
+        await dbManager.insertIntoPresentationFiles(
+            'lista Total',
+            element['FileName'],
+            element['FileType'],
+            element['FilePath'],
+            element['ThumbPath'],
+            element['FileOrientation'],
+            element['VideoDuration'],
+            element['SpecialIMG'],
+            element['Created'],
+            openDB);
+      }
     });
   }
 }

@@ -3,14 +3,20 @@ import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:portrait/classes/clipRecct.dart';
-import 'package:portrait/screens/openAlbum.dart';
 import 'package:sqflite/sqflite.dart';
 
 class AlbumsList extends StatelessWidget {
   final List albumFolders;
   final Database openDB;
+  final Function(String) itemTapped;
+  final bool? presentation;
 
-  const AlbumsList({Key? key, required this.albumFolders, required this.openDB})
+  const AlbumsList(
+      {Key? key,
+      required this.albumFolders,
+      required this.openDB,
+      required this.itemTapped,
+      this.presentation = false})
       : super(key: key);
 
   @override
@@ -27,14 +33,9 @@ class AlbumsList extends StatelessWidget {
           ),
           itemBuilder: (BuildContext context, int index) {
             return GestureDetector(
-              onTap: () {
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => OpenAlbum(
-                            albumsNames: [albumFolders[index].path],
-                            openDB: openDB)));
-              },
+              onTap: () => presentation!
+                  ? itemTapped(albumFolders[0])
+                  : itemTapped(albumFolders[index].path),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -51,6 +52,10 @@ class AlbumsList extends StatelessWidget {
   }
 
   _albumsName(int index) {
+    if (albumFolders.runtimeType.toString() == 'List<String>') {
+      return Text(albumFolders[0],
+          style: TextStyle(fontSize: 15, fontFamily: 'RobotoMono'));
+    }
     if (albumFolders.runtimeType.toString() == 'List<Directory>') {
       String dirName = albumFolders[index].path;
       dirName = dirName.substring(0, dirName.lastIndexOf('/'));
