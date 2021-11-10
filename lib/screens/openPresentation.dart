@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:portrait/classes/betterPlayer.dart';
 import 'package:portrait/classes/usableFilesForList.dart';
 import 'package:portrait/db/dbManager.dart';
 import 'package:sqflite/sqflite.dart';
@@ -53,7 +54,21 @@ class _OpenPresentationState extends State<OpenPresentation> {
               ),
               itemBuilder: (BuildContext context, int itemIndex) {
                 return GestureDetector(
-                    onTap: () {},
+                    onTap: () {
+                      if (presentationItems[itemIndex][0].fileType == 'video') {
+
+                        print(presentationItems[itemIndex][0].filePath);
+                        print(presentationItems[itemIndex][0].fileOrientation);
+
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => MyBetterPlayer(
+                                    orientation: presentationItems[itemIndex][0].fileOrientation,
+                                    path: presentationItems[itemIndex][0].filePath,
+                                    videoCallback: (event) {})));
+                      }
+                    },
                     child: Stack(fit: StackFit.expand, children: [
                       loadingItems
                           ? Container(

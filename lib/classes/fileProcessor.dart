@@ -29,6 +29,8 @@ class FileProcessor {
     List<String> filesToSync = [];
     List<String> filesToDelete = [];
 
+    print(filesInDir.length);
+
     if (!forceResync) {
       /// Arquivos que estao na pasta mas não estão no DB
       for (var element in filesInDir) {

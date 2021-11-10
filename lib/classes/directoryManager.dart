@@ -95,7 +95,7 @@ _isolatedDirDigger(Map argsMap) {
 _isolatedGetImagesAndVideosFromDirectory(String path) {
   Directory thisDir = Directory(path);
   List<String> filesInDir = [];
-  for (var element in thisDir.listSync()) {
+  for (var element in thisDir.listSync(followLinks: true)) {
     if (lookupMimeType(element.path).toString().contains('image') ||
         lookupMimeType(element.path).toString().contains('video')) {
       filesInDir.add(element.path);
