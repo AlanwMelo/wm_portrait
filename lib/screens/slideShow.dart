@@ -179,23 +179,6 @@ class _SlideShowState extends State<SlideShow> {
     }
   }
 
-  _canChangePage(int index) async {
-    //Aguarda até que o usuário solte a tela
-    while (userPressing == true) {
-      await Future.delayed(Duration(seconds: 3));
-    }
-    //Se o index da chamada ainda for o mesmo index do swiper, pula de página
-
-    print('teste');
-    print(actualPageIndex);
-    print(index);
-    if (userQuitedSlideShow == false) {
-      if (index == actualPageIndex) {
-        swiperController.next();
-      } else {}
-    }
-  }
-
   slideShowItem(UsableFilesForList slideShowListItem, int fileIndex) {
     if (slideShowListItem.fileType == 'image' &&
         slideShowListItem.specialIMG.toString() == 'false') {
@@ -214,8 +197,22 @@ class _SlideShowState extends State<SlideShow> {
     } else if (slideShowListItem.fileType == 'video') {
       /// Retorna um container vazio até que o video esteja na tela para melhorar perfomace
 
+      // Aux criada pois o done é retornado diversas vezes
+      int aux = 0;
       return actualPageIndex == fileIndex
-          ? MyBetterPlayer(
+          ? MyVlcPlayer(
+              path: slideShowListItem.filePath,
+              orientation: slideShowListItem.fileOrientation,
+              videoCallback: (videoCallback) async {
+                if(aux == 0){
+                  aux = 1;
+                  await Future.delayed(Duration(milliseconds: 500));
+                  swiperController.next();
+                }
+
+              })
+
+          /*MyBetterPlayer(
               path: slideShowListItem.filePath,
               orientation: slideShowListItem.fileOrientation,
               videoCallback: (videoEvent) async {
@@ -224,7 +221,7 @@ class _SlideShowState extends State<SlideShow> {
                   await Future.delayed(Duration(milliseconds: 500));
                   swiperController.next();
                 }
-              })
+              })*/
           : Container();
     }
   }

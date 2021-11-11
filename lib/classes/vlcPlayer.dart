@@ -102,12 +102,32 @@ class _MyVlcPlayerState extends State<MyVlcPlayer> {
     return Container();
   }
 
-  _initVlcController() {
+  _initVlcController() async {
     vlcPlayerController = VlcPlayerController.file(
       File(widget.path),
       hwAcc: HwAcc.FULL,
       autoPlay: true,
       options: VlcPlayerOptions(),
     );
+
+    vlcPlayerController.addListener(() async {
+      /* print(await vlcPlayerController.isPlaying());
+      print(await vlcPlayerController.getPosition());*/
+      bool? playing = false;
+      Duration? position = Duration(seconds: 0);
+
+      if (this.mounted) {
+        try {
+          playing = await vlcPlayerController.isPlaying();
+          position = await vlcPlayerController.getPosition();
+        } catch (e) {
+          print(e);
+        }
+      }
+
+      if (!playing! && position! > Duration(milliseconds: 1)) {
+        widget.videoCallback('done');
+      }
+    });
   }
 }

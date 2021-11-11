@@ -215,7 +215,7 @@ class _MyHomePageState extends State<_MyHomePage>
         for (var element in usableDirectories) {
           if (directoriesInDB.toString().contains(element.path)) {
             print('DIR already in DB... DIR: ${element.path}');
-            directoriesToUpdate.add(element);
+            //directoriesToUpdate.add(element);
 
             int lastModified = await directoriesInDB.firstWhere(
                 (directoriesInDBElement) => directoriesInDBElement
@@ -235,7 +235,7 @@ class _MyHomePageState extends State<_MyHomePage>
           }
         }
         await syncFiles.syncFiles(
-            directoriesToUpdate); // trocar para directoriesToUpdate
+            [usableDirectories[4]]); // trocar para directoriesToUpdate
       } else if (!usableDirectories.toString().contains(event)) {
         usableDirectories.add(Directory(event));
         setState(() {});
