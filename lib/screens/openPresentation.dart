@@ -169,11 +169,11 @@ class _OpenPresentationState extends State<OpenPresentation> {
       File thumbFile = File(element['ThumbPath']);
       
       slideshowItems.add(usableFile);
-      slideshowItems.sort((a,b) => b.createdDate.compareTo(a.createdDate));
-      
+      slideshowItems.sort((a,b) => a.createdDate.compareTo(b.createdDate));
+
       presentationItems.add([usableFile, thumbFile]);
       presentationItems
-          .sort((a, b) => b[0].createdDate.compareTo(a[0].createdDate));
+          .sort((a, b) => a[0].createdDate.compareTo(b[0].createdDate));
       setState(() {});
     }
     loadingItems = !loadingItems;

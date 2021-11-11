@@ -117,6 +117,16 @@ class _PresentationsListState extends State<PresentationsList> {
           'lista Total', openDB, DateTime.now().millisecondsSinceEpoch);
       var result = await dbManager.readAllFromAllFiles(openDB);
       for (var element in result) {
+        /*"ID INTEGER PRIMARY KEY AUTOINCREMENT,"
+            "FileName TEXT,"
+            "FileType TEXT,"
+            "FilePath TEXT,"
+            "ThumbPath TEXT,"
+            "FileOrientation TEXT,"
+            "VideoDuration TEXT,"
+            "SpecialIMG TEXT,"
+            "Created NUMERIC"*/
+
         await dbManager.insertIntoPresentationFiles(
             'lista Total',
             element['FileName'],
@@ -126,7 +136,7 @@ class _PresentationsListState extends State<PresentationsList> {
             element['FileOrientation'],
             element['VideoDuration'],
             element['SpecialIMG'],
-            element['Created'],
+            element['Create'],
             openDB);
       }
     });

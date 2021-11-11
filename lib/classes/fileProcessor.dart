@@ -222,6 +222,9 @@ class FileProcessor {
 
         fileOrientation = _getFileOrientation(info.orientation);
 
+       var z = DateTime.parse(info.date!);
+       print('z date $z');
+
         await Future.delayed(duration);
 
         /// Generates Thumbnail for videos
@@ -243,7 +246,7 @@ class FileProcessor {
             fileOrientation: fileOrientation,
             videoDuration: videoLength,
             specialIMG: '',
-            created: thisFile.lastModifiedSync().millisecondsSinceEpoch,
+            created: DateTime.parse(info.date!).millisecondsSinceEpoch,
             openDB: openDB);
 
         print('Info generated for video: $thumbName');

@@ -215,6 +215,7 @@ class _MyHomePageState extends State<_MyHomePage>
         for (var element in usableDirectories) {
           if (directoriesInDB.toString().contains(element.path)) {
             print('DIR already in DB... DIR: ${element.path}');
+            directoriesToUpdate.add(element);
 
             int lastModified = await directoriesInDB.firstWhere(
                 (directoriesInDBElement) => directoriesInDBElement
@@ -226,13 +227,15 @@ class _MyHomePageState extends State<_MyHomePage>
               directoriesToUpdate.add(element);
             }
           } else {
-            directoriesToUpdate.add(element);
+            if(element.path.toLowerCase().contains('cancun')){
+              directoriesToUpdate.add(element);
+            }
             await dbManager.addDirectoryToDB(element.path, openDB,
                 element.statSync().modified.millisecondsSinceEpoch);
           }
         }
         await syncFiles.syncFiles(
-            [usableDirectories[4]]); // trocar para directoriesToUpdate
+            directoriesToUpdate); // trocar para directoriesToUpdate
       } else if (!usableDirectories.toString().contains(event)) {
         usableDirectories.add(Directory(event));
         setState(() {});
