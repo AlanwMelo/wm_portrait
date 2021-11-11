@@ -15,7 +15,7 @@ import 'package:photo_manager/photo_manager.dart';
 import 'package:portrait/classes/appColors.dart';
 import 'package:portrait/classes/usableFilesForList.dart';
 import 'package:portrait/db/dbManager.dart';
-import 'package:portrait/screens/newSlideShow.dart';
+import 'package:portrait/screens/slideShow.dart';
 import 'package:portrait/screens/slideshow.dart';
 import 'package:video_compress/video_compress.dart';
 

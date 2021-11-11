@@ -2,9 +2,9 @@ import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:portrait/classes/betterPlayer.dart';
 import 'package:portrait/classes/usableFilesForList.dart';
 import 'package:portrait/db/dbManager.dart';
+import 'package:portrait/screens/slideShow.dart';
 import 'package:sqflite/sqflite.dart';
 
 class OpenPresentation extends StatefulWidget {
@@ -26,6 +26,7 @@ class _OpenPresentationState extends State<OpenPresentation> {
 
   late String displayName;
   List presentationItems = [];
+  List<UsableFilesForList> slideshowItems = [];
   bool loadingItems = false;
 
   MyDbManager dbManager = MyDbManager();
@@ -55,19 +56,13 @@ class _OpenPresentationState extends State<OpenPresentation> {
               itemBuilder: (BuildContext context, int itemIndex) {
                 return GestureDetector(
                     onTap: () {
-                      if (presentationItems[itemIndex][0].fileType == 'video') {
-
-                        print(presentationItems[itemIndex][0].filePath);
-                        print(presentationItems[itemIndex][0].fileOrientation);
-
-                        Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => MyBetterPlayer(
-                                    orientation: presentationItems[itemIndex][0].fileOrientation,
-                                    path: presentationItems[itemIndex][0].filePath,
-                                    videoCallback: (event) {})));
-                      }
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => SlideShow(
+                                    slideShowList: slideshowItems,
+                                    startIndex: itemIndex,
+                                  )));
                     },
                     child: Stack(fit: StackFit.expand, children: [
                       loadingItems
@@ -172,6 +167,10 @@ class _OpenPresentationState extends State<OpenPresentation> {
           element['Created']);
 
       File thumbFile = File(element['ThumbPath']);
+      
+      slideshowItems.add(usableFile);
+      slideshowItems.sort((a,b) => b.createdDate.compareTo(a.createdDate));
+      
       presentationItems.add([usableFile, thumbFile]);
       presentationItems
           .sort((a, b) => b[0].createdDate.compareTo(a[0].createdDate));

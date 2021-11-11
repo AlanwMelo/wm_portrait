@@ -90,7 +90,7 @@ class _MyBetterPlayerState extends State<MyBetterPlayer> {
         betterPlayerDataSource: _betterPlayerDataSource);
     _betterPlayerController.addEventsListener((event) {
       if (event.betterPlayerEventType == BetterPlayerEventType.finished) {
-        print('Acabou');
+        widget.videoCallback('done');
       }
     });
   }

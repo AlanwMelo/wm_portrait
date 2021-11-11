@@ -23,7 +23,7 @@ import 'package:portrait/screens/presentationsList.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:sqflite/sqflite.dart';
 
-import 'classes/syncingStream.dart';
+import 'streams/syncingStream.dart';
 
 void main() {
   runApp(MyApp());
@@ -81,13 +81,11 @@ class _MyHomePageState extends State<_MyHomePage>
   // Stream of syncing files used in the whole APP
   bool syncRunning = false;
   final SyncingStream syncingStreamClass = SyncingStream();
-  late Stream syncingStream;
 
   late SyncFiles syncFiles;
 
   @override
   void initState() {
-    syncingStream = syncingStreamClass.streamControllerStream;
     _openDB();
     _initTextControllers();
     super.initState();

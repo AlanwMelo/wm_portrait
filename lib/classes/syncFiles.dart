@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:permission_handler/permission_handler.dart';
 import 'package:portrait/classes/fileProcessor.dart';
-import 'package:portrait/classes/syncingStream.dart';
+import 'package:portrait/streams/syncingStream.dart';
 import 'package:portrait/db/dbManager.dart';
 import 'package:sqflite/sqflite.dart';
 

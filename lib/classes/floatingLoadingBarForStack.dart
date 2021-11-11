@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:portrait/classes/syncingStream.dart';
+import 'package:portrait/streams/syncingStream.dart';
 
 class FloatingLoadingBarForStack extends StatefulWidget {
   final SyncingStream syncingStream;
