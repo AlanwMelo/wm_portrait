@@ -167,9 +167,9 @@ class _OpenPresentationState extends State<OpenPresentation> {
           element['Created']);
 
       File thumbFile = File(element['ThumbPath']);
-      
+
       slideshowItems.add(usableFile);
-      slideshowItems.sort((a,b) => a.createdDate.compareTo(b.createdDate));
+      slideshowItems.sort((a, b) => a.createdDate.compareTo(b.createdDate));
 
       presentationItems.add([usableFile, thumbFile]);
       presentationItems

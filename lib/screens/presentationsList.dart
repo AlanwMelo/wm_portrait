@@ -136,7 +136,7 @@ class _PresentationsListState extends State<PresentationsList> {
             element['FileOrientation'],
             element['VideoDuration'],
             element['SpecialIMG'],
-            element['Create'],
+            element['Created'],
             openDB);
       }
     });
