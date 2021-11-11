@@ -42,6 +42,9 @@ class _SlideShowState extends State<SlideShow> {
   /// Controlador do swiper
   SwiperController swiperController = SwiperController();
 
+  /// Timer que pula de imagem sozinho
+  Timer? debounce;
+
   @override
   void dispose() {
     // Libera o bloqueio de tela.
@@ -50,9 +53,6 @@ class _SlideShowState extends State<SlideShow> {
     SystemChrome.setEnabledSystemUIOverlays(
         [SystemUiOverlay.top, SystemUiOverlay.bottom]);
 
-    _autoChangePage(slideShowControlList[widget.startIndex], widget.startIndex);
-    // Index atual recebe o index pelo qual a apresentação foi iniciada
-    actualPageIndex = widget.startIndex;
     userQuitedSlideShow = true;
     super.dispose();
   }
@@ -65,7 +65,7 @@ class _SlideShowState extends State<SlideShow> {
     SystemChrome.setEnabledSystemUIOverlays([]);
     //Carrega a lista a partir do index informado na contrução da tela
     slideShowControlList = widget.slideShowList;
-    _autoChangePage(slideShowControlList[widget.startIndex], widget.startIndex);
+    _autoChangePage(slideShowControlList[widget.startIndex]);
     actualPageIndex = widget.startIndex;
 
     super.initState();
@@ -87,6 +87,7 @@ class _SlideShowState extends State<SlideShow> {
                 index: widget.startIndex,
                 onIndexChanged: (index) {
                   actualPageIndex = index;
+                  _autoChangePage(slideShowControlList[index]);
                 },
                 itemBuilder: (BuildContext context, int index) {
                   return Container(
@@ -162,11 +163,19 @@ class _SlideShowState extends State<SlideShow> {
     }
   }
 
-  _autoChangePage(UsableFilesForList file, int index) async {
+  _autoChangePage(UsableFilesForList file) async {
     ///Controlador para a troca automática de slides da apresentação (utilizado apenas para imagens)
     if (file.fileType == 'image') {
-      await Future.delayed(Duration(seconds: 45));
-      swiperController.next();
+      if (debounce?.isActive ?? false) {
+        debounce!.cancel();
+      }
+      debounce = Timer(Duration(seconds: 45), () {
+        swiperController.next();
+      });
+    } else {
+      if (debounce?.isActive ?? false) {
+        debounce!.cancel();
+      }
     }
   }
 
