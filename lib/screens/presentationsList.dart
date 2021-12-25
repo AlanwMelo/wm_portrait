@@ -113,19 +113,10 @@ class _PresentationsListState extends State<PresentationsList> {
 
   _floatingActionButton() {
     return FloatingActionButton(onPressed: () async {
-      await dbManager.createNewPresentation(
+      /*await dbManager.createNewPresentation(
           'lista Total', openDB, DateTime.now().millisecondsSinceEpoch);
       var result = await dbManager.readAllFromAllFiles(openDB);
       for (var element in result) {
-        /*"ID INTEGER PRIMARY KEY AUTOINCREMENT,"
-            "FileName TEXT,"
-            "FileType TEXT,"
-            "FilePath TEXT,"
-            "ThumbPath TEXT,"
-            "FileOrientation TEXT,"
-            "VideoDuration TEXT,"
-            "SpecialIMG TEXT,"
-            "Created NUMERIC"*/
 
         await dbManager.insertIntoPresentationFiles(
             'lista Total',
@@ -138,7 +129,7 @@ class _PresentationsListState extends State<PresentationsList> {
             element['SpecialIMG'],
             element['Created'],
             openDB);
-      }
+      }*/
     });
   }
 }

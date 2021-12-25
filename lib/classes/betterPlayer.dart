@@ -81,6 +81,7 @@ class _MyBetterPlayerState extends State<MyBetterPlayer> {
         BetterPlayerConfiguration(
           autoPlay: true,
           aspectRatio: aspectRatio,
+          autoDispose: false,
           controlsConfiguration: BetterPlayerControlsConfiguration(
             showControls: false,
             showControlsOnInitialize: false,

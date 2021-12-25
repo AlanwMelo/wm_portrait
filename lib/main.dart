@@ -261,9 +261,9 @@ class _MyHomePageState extends State<_MyHomePage>
           mainAxisAlignment: MainAxisAlignment.start,
           children: <Widget>[
             GestureDetector(
-              onTap: () async {
+              onTap: () async {/*
                 await _loadDirectoriesFromDB();
-                _syncDirectories();
+                _syncDirectories();*/
               },
               child: Container(
                 height: 50,
