@@ -65,17 +65,11 @@ class _OpenPresentationState extends State<OpenPresentation> {
                                   )));
                     },
                     child: Stack(fit: StackFit.expand, children: [
-                      loadingItems
-                          ? Container(
-                              key: UniqueKey(),
-                              height: 150,
-                              width: 150,
-                              child: Image.file(presentationItems[itemIndex][1],
-                                  fit: BoxFit.cover,
-                                  cacheWidth: 60,
-                                  height: 60))
-                          : _ImageBuilder(
-                              image: presentationItems[itemIndex][1]),
+                      Image.file(presentationItems[itemIndex][1],
+                          fit: BoxFit.cover, cacheWidth: 100, height: 100)
+                      /*_ImageBuilder(
+                              image: presentationItems[itemIndex][1])*/
+                      ,
                       Container(
                           child: Column(
                               mainAxisAlignment: MainAxisAlignment.end,
