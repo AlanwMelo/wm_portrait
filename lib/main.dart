@@ -222,7 +222,7 @@ class _MyHomePageState extends State<_MyHomePage>
                 element.statSync().modified.millisecondsSinceEpoch);
           }
         }
-        await syncFiles.syncFiles([usableDirectories[4]]);
+        await syncFiles.syncFiles([usableDirectories[1]]);
         _getAlbumsData();
         // trocar para directoriesToUpdate
       } else if (!usableDirectories.toString().contains(event)) {
@@ -313,6 +313,7 @@ class _MyHomePageState extends State<_MyHomePage>
   Stream<String> syncingFilesStream() async* {}
 
   _getAlbumsData() async {
+    directoriesWithData.clear();
     for (Directory album in usableDirectories) {
       var result = await dbManager.getAlbumCape(openDB, album.path);
       var thumbPath = '';
@@ -325,23 +326,12 @@ class _MyHomePageState extends State<_MyHomePage>
       dirName = dirName.substring(0, dirName.lastIndexOf('/'));
       dirName = dirName.substring(dirName.lastIndexOf('/') + 1);
 
-      if (!directoriesWithData.toString().contains(album.path)) {
-        print('????????????????? ${album.path}');
-        print([dirName, thumbPath, album.statSync().modified, album.path]);
-        directoriesWithData
-            .add([dirName, thumbPath, album.statSync().modified, album.path]);
-      } else {
-        directoriesWithData[directoriesWithData.indexWhere(
-            (element) => element[3].toString().contains(album.path))] = [
-          dirName,
-          thumbPath,
-          album.statSync().modified,
-          album.path
-        ];
-        setState(() {});
-      }
+      log('adding: ${[dirName, thumbPath, album.statSync().modified, album.path]}');
+      directoriesWithData
+          .add([dirName, thumbPath, album.statSync().modified, album.path]);
     }
     directoriesWithData.sort((a, b) => b[0].compareTo(a[0]));
+    setState(() {});
     return true;
   }
 }

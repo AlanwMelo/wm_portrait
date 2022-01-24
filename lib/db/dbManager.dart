@@ -51,6 +51,7 @@ class MyDbManager {
             "FileType TEXT,"
             "FilePath TEXT,"
             "ThumbPath TEXT,"
+            "FileDir TEXT,"
             "FileOrientation TEXT,"
             "VideoDuration TEXT,"
             "SpecialIMG TEXT,"
@@ -131,12 +132,14 @@ class MyDbManager {
       required String specialIMG,
       required int created,
       required String createdDay,
+      required String fileDir,
       required Database openDB}) async {
     Map<String, dynamic> fileToList = {
       "FileName": fileName,
       "FileType": fileType,
       "FilePath": filePath,
       "ThumbPath": thumbPath,
+      "FileDir": fileDir,
       "FileOrientation": fileOrientation,
       "VideoDuration": videoDuration,
       "SpecialIMG": specialIMG,
@@ -162,11 +165,12 @@ class MyDbManager {
 
   readDirectoryFromAllFiles(String path, Database openDB) async {
     log('Reading from device_files where dir = $path');
+    print('???? $path');
 
     List<Map> result = await openDB.query(
       'device_files',
-      where: 'FilePath LIKE ?',
-      whereArgs: ['%$path%'],
+      where: 'FileDir = ?',
+      whereArgs: ['$path'],
     );
 
     return result;
@@ -203,8 +207,8 @@ class MyDbManager {
 
   getAlbumCape(Database db, String album) async {
     var result = await db.query('device_files',
-        where: 'FilePath LIKE ?',
-        whereArgs: ['%$album%'],
+        where: 'FileDir = ?',
+        whereArgs: ['$album'],
         orderBy: 'Created DESC',
         limit: 1);
 

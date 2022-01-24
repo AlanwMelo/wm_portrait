@@ -44,8 +44,8 @@ class _AlbumsListState extends State<AlbumsList> {
           itemBuilder: (BuildContext context, int index) {
             return GestureDetector(
               onTap: () => widget.presentation!
-                  ? widget.itemTapped(widget.albumFolders[0])
-                  : widget.itemTapped(widget.albumFolders[index][0]),
+                  ? widget.itemTapped(widget.albumFolders[3])
+                  : widget.itemTapped(widget.albumFolders[index][3]),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [

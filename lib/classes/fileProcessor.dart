@@ -179,6 +179,7 @@ class FileProcessor {
               fileType: 'image',
               filePath: thisFile.path,
               thumbPath: thumbName,
+              fileDir: thisFile.path.substring(0, thisFile.path.lastIndexOf('/')+1),
               fileOrientation: orientation,
               videoDuration: '',
               specialIMG: specialIMG,
@@ -229,9 +230,6 @@ class FileProcessor {
 
         fileOrientation = _getFileOrientation(info.orientation);
 
-       var z = DateTime.parse(info.date!);
-       print('z date $z');
-
         await Future.delayed(duration);
 
         /// Generates Thumbnail for videos
@@ -256,6 +254,7 @@ class FileProcessor {
             fileName: info.title!,
             fileType: 'video',
             filePath: thisFile.path,
+            fileDir: thisFile.path.substring(0, thisFile.path.lastIndexOf('/')+1),
             thumbPath: '$thumbNameWithoutExtension.jpg',
             fileOrientation: fileOrientation,
             videoDuration: videoLength,
