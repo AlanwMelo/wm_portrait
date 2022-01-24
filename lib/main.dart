@@ -1,28 +1,19 @@
 import 'dart:async';
 
 import 'package:card_swiper/card_swiper.dart';
-import 'package:file_manager/controller/file_manager_controller.dart';
-import 'package:file_manager/file_manager.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:portrait/screens/albumsList.dart';
 import 'package:portrait/classes/appColors.dart';
-import 'package:portrait/classes/clipRecct.dart';
-import 'package:portrait/classes/directoryManager.dart';
-import 'package:portrait/classes/fileProcessor.dart';
 import 'package:portrait/classes/floatingLoadingBarForStack.dart';
 import 'package:portrait/classes/syncFiles.dart';
 import 'package:portrait/classes/textStyle.dart';
-import 'package:portrait/colorScreen.dart';
 import 'package:portrait/db/dbManager.dart';
 import 'package:portrait/screens/openAlbum.dart';
 import 'dart:io';
-import 'package:portrait/screens/openList.dart';
 import 'package:portrait/screens/presentationsList.dart';
-import 'package:rxdart/rxdart.dart';
 import 'package:sqflite/sqflite.dart';
-
+import 'dart:developer';
 import 'streams/syncingStream.dart';
 
 void main() {
@@ -69,6 +60,7 @@ class _MyHomePageState extends State<_MyHomePage>
   // List with all directories that contains images or videos
   late List<Map> directoriesInDB;
   List<Directory> usableDirectories = [];
+  List<List> directoriesWithData = [];
 
   // Animated Text color controllers
   late Animation<Color?> photoAnimation;
@@ -189,7 +181,7 @@ class _MyHomePageState extends State<_MyHomePage>
     openDB = await dbManager.dbManagerStartDB();
     syncFiles = SyncFiles(syncingStreamClass, openDB);
     await _loadDirectoriesFromDB();
-    print('DB Initialized');
+    log('DB Initialized');
   }
 
   _initTextControllers() {
@@ -214,7 +206,7 @@ class _MyHomePageState extends State<_MyHomePage>
       if (event == 'done') {
         for (var element in usableDirectories) {
           if (directoriesInDB.toString().contains(element.path)) {
-            print('DIR already in DB... DIR: ${element.path}');
+            log('DIR already in DB... DIR: ${element.path}');
 
             int lastModified = await directoriesInDB.firstWhere(
                 (directoriesInDBElement) => directoriesInDBElement
@@ -226,20 +218,19 @@ class _MyHomePageState extends State<_MyHomePage>
               directoriesToUpdate.add(element);
             }
           } else {
-            if (element.path.toLowerCase().contains('cancun')) {
-              directoriesToUpdate.add(element);
-            }
             await dbManager.addDirectoryToDB(element.path, openDB,
                 element.statSync().modified.millisecondsSinceEpoch);
           }
         }
-        await syncFiles.syncFiles(
-            [usableDirectories[4]]); // trocar para directoriesToUpdate
+        await syncFiles.syncFiles([usableDirectories[4]]);
+        _getAlbumsData();
+        // trocar para directoriesToUpdate
       } else if (!usableDirectories.toString().contains(event)) {
         usableDirectories.add(Directory(event));
-        setState(() {});
+        _getAlbumsData();
       }
     });
+    _getAlbumsData();
   }
 
   _loadDirectoriesFromDB() async {
@@ -250,6 +241,7 @@ class _MyHomePageState extends State<_MyHomePage>
         setState(() {});
       }
     }
+    _getAlbumsData();
     return true;
   }
 
@@ -290,6 +282,7 @@ class _MyHomePageState extends State<_MyHomePage>
             GestureDetector(
               onTap: () async {
                 _syncDirectories();
+                setState(() {});
               },
               child: Container(
                 height: 50,
@@ -305,7 +298,7 @@ class _MyHomePageState extends State<_MyHomePage>
 
   _albums() {
     return AlbumsList(
-      albumFolders: usableDirectories,
+      albumFolders: directoriesWithData,
       openDB: openDB,
       itemTapped: (selectedAlbum) {
         Navigator.push(
@@ -318,4 +311,37 @@ class _MyHomePageState extends State<_MyHomePage>
   }
 
   Stream<String> syncingFilesStream() async* {}
+
+  _getAlbumsData() async {
+    for (Directory album in usableDirectories) {
+      var result = await dbManager.getAlbumCape(openDB, album.path);
+      var thumbPath = '';
+
+      if (!result.isEmpty) {
+        thumbPath = result[0]['ThumbPath'];
+      }
+
+      String dirName = album.path;
+      dirName = dirName.substring(0, dirName.lastIndexOf('/'));
+      dirName = dirName.substring(dirName.lastIndexOf('/') + 1);
+
+      if (!directoriesWithData.toString().contains(album.path)) {
+        print('????????????????? ${album.path}');
+        print([dirName, thumbPath, album.statSync().modified, album.path]);
+        directoriesWithData
+            .add([dirName, thumbPath, album.statSync().modified, album.path]);
+      } else {
+        directoriesWithData[directoriesWithData.indexWhere(
+            (element) => element[3].toString().contains(album.path))] = [
+          dirName,
+          thumbPath,
+          album.statSync().modified,
+          album.path
+        ];
+        setState(() {});
+      }
+    }
+    directoriesWithData.sort((a, b) => b[0].compareTo(a[0]));
+    return true;
+  }
 }

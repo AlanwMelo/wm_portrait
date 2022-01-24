@@ -119,7 +119,7 @@ class _OpenAlbumState extends State<OpenAlbum> {
 
   _getDisplayName(List<String> albumsNames) {
     String albumName;
-    albumName = albumsNames[0].substring(0, albumsNames[0].length - 1);
+    albumName = albumsNames[0].substring(0, albumsNames[0].length);
     albumName = albumName.substring(albumName.lastIndexOf('/') + 1);
     displayName = albumName;
   }

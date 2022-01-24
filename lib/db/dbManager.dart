@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/cupertino.dart';
@@ -21,7 +22,6 @@ class MyDbManager {
       onCreate: (db, version) async {
         await db.execute(
             "CREATE TABLE IF NOT EXISTS directories_with_images_or_videos ("
-            "ID INTEGER PRIMARY KEY AUTOINCREMENT,"
             "DirectoryPath TEXT,"
             "Modified NUMERIC"
             ")");
@@ -90,7 +90,7 @@ class MyDbManager {
       String specialIMG,
       int created,
       Database db) async {
-    print('File $filePath inserted into presentation $listName');
+    log('File $filePath inserted into presentation $listName');
 
     Map<String, dynamic> fileIntoList = {
       "ListName": listName,
@@ -144,7 +144,7 @@ class MyDbManager {
       "CreatedDay": createdDay,
     };
 
-    print('Inserting file $fileName into table device_files');
+    log('Inserting file $fileName into table device_files');
     await openDB.insert('device_files', fileToList,
         conflictAlgorithm: ConflictAlgorithm.replace);
   }
@@ -161,7 +161,7 @@ class MyDbManager {
   }
 
   readDirectoryFromAllFiles(String path, Database openDB) async {
-    print('Reading from device_files where dir = $path');
+    log('Reading from device_files where dir = $path');
 
     List<Map> result = await openDB.query(
       'device_files',
@@ -177,14 +177,19 @@ class MyDbManager {
   /// ############ START DIRECTORIES LIST MANAGEMENT ############
 
   addDirectoryToDB(String path, Database db, int modified) async {
-    print('Adding DIR to DB: $path');
+
     Map<String, dynamic> _mapToDB = {
       "DirectoryPath": path,
       "Modified": modified
     };
 
-    await db.insert('directories_with_images_or_videos', _mapToDB,
-        conflictAlgorithm: ConflictAlgorithm.abort);
+    var inDb = await readListOfDirectories(db);
+
+    if (!inDb.toString().contains(path)) {
+      log('Adding DIR to DB: $path');
+      await db.insert('directories_with_images_or_videos', _mapToDB,
+          conflictAlgorithm: ConflictAlgorithm.abort);
+    }
 
     return true;
   }
@@ -196,10 +201,20 @@ class MyDbManager {
     return result;
   }
 
+  getAlbumCape(Database db, String album) async {
+    var result = await db.query('device_files',
+        where: 'FilePath LIKE ?',
+        whereArgs: ['%$album%'],
+        orderBy: 'Created DESC',
+        limit: 1);
+
+    return result;
+  }
+
   readDirectoryOfFiles(String path, Database openDB) async {
     String actualTableName = await _getTableName(path);
 
-    print('Reading table $actualTableName');
+    log('Reading table $actualTableName');
 
     List<Map> result = await openDB.rawQuery('SELECT * FROM $actualTableName');
 
@@ -230,7 +245,7 @@ class MyDbManager {
       "Created": created,
     };
 
-    print('Inserting file $fileName into table $actualTableName');
+    log('Inserting file $fileName into table $actualTableName');
     await openDB.insert(actualTableName, fileToList,
         conflictAlgorithm: ConflictAlgorithm.replace);
   }
@@ -238,7 +253,7 @@ class MyDbManager {
   _transformDirInTableName(String dirName) {
     dirName = dirName.replaceAll(RegExp('[^A-Za-z0-9]'), '_');
 
-    print(dirName);
+    log(dirName);
     return dirName;
   }
 
