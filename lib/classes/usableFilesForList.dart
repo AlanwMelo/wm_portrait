@@ -6,6 +6,7 @@ class UsableFilesForList {
   String videoLength;
   String fileOrientation;
   String specialIMG;
+  String createdDay;
   int createdDate;
 
   UsableFilesForList(
@@ -16,5 +17,6 @@ class UsableFilesForList {
       this.videoLength,
       this.fileOrientation,
       this.specialIMG,
+      this.createdDay,
       this.createdDate);
 }

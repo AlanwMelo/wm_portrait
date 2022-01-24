@@ -54,7 +54,8 @@ class MyDbManager {
             "FileOrientation TEXT,"
             "VideoDuration TEXT,"
             "SpecialIMG TEXT,"
-            "Created NUMERIC"
+            "Created NUMERIC,"
+            "CreatedDay TEXT"
             ")");
       },
       version: _dbVersion,
@@ -129,6 +130,7 @@ class MyDbManager {
       required String videoDuration,
       required String specialIMG,
       required int created,
+      required String createdDay,
       required Database openDB}) async {
     Map<String, dynamic> fileToList = {
       "FileName": fileName,
@@ -139,6 +141,7 @@ class MyDbManager {
       "VideoDuration": videoDuration,
       "SpecialIMG": specialIMG,
       "Created": created,
+      "CreatedDay": createdDay,
     };
 
     print('Inserting file $fileName into table device_files');

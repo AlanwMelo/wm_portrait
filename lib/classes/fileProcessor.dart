@@ -167,6 +167,12 @@ class FileProcessor {
               thisFile.path, '$thumbName',
               quality: 20);
 
+
+          DateTime getConvertedDate =
+          DateTime.fromMillisecondsSinceEpoch(dateTime.millisecondsSinceEpoch);
+          String convertedDate =
+              '${getConvertedDate.day.toString().padLeft(2, '0')}/${getConvertedDate.month.toString().padLeft(2, '0')}/${getConvertedDate.year}';
+
           await dbManager.insertIntoAllFiles(
               path: path,
               fileName: fileName,
@@ -177,6 +183,7 @@ class FileProcessor {
               videoDuration: '',
               specialIMG: specialIMG,
               created: dateTime.millisecondsSinceEpoch,
+              createdDay: convertedDate,
               openDB: openDB);
         }
       } catch (e) {
@@ -237,6 +244,13 @@ class FileProcessor {
         await Future.delayed(duration);
         thumbnailFile.copy('$thumbNameWithoutExtension.jpg');
 
+        DateTime date = DateTime.parse(info.date!);
+
+        DateTime getConvertedDate =
+        DateTime.fromMillisecondsSinceEpoch(date.millisecondsSinceEpoch);
+        String convertedDate =
+            '${getConvertedDate.day.toString().padLeft(2, '0')}/${getConvertedDate.month.toString().padLeft(2, '0')}/${getConvertedDate.year}';
+
         await dbManager.insertIntoAllFiles(
             path: path,
             fileName: info.title!,
@@ -246,7 +260,8 @@ class FileProcessor {
             fileOrientation: fileOrientation,
             videoDuration: videoLength,
             specialIMG: '',
-            created: DateTime.parse(info.date!).millisecondsSinceEpoch,
+            created: date.millisecondsSinceEpoch,
+            createdDay: convertedDate,
             openDB: openDB);
 
         print('Info generated for video: $thumbName');

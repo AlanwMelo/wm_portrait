@@ -24,15 +24,14 @@ class _OpenAlbumState extends State<OpenAlbum> {
   _OpenAlbumState(this.openDB);
 
   late String displayName;
-  List<Map> datedFiles = [];
-  List<List> listOfLists = [];
+  List differentDates = [];
   List allFiles = [];
-
+  List<List> allLists = [];
   MyDbManager dbManager = MyDbManager();
 
   @override
   void initState() {
-    _getFilesOfDir();
+    _getAllFilesOfDir();
     _getDisplayName(widget.albumsNames);
     super.initState();
   }
@@ -42,80 +41,18 @@ class _OpenAlbumState extends State<OpenAlbum> {
     return Scaffold(
         appBar: _appBar(),
         body: Container(
-          child: GridView.builder(
+          child: ListView.builder(
               shrinkWrap: true,
-              itemCount: allFiles.length,
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                childAspectRatio: 1,
-                crossAxisSpacing: 1,
-                mainAxisSpacing: 1,
-                crossAxisCount:
-                    (MediaQuery.of(context).size.width / 120).round(),
-              ),
+              itemCount: differentDates.length,
               itemBuilder: (BuildContext context, int itemIndex) {
-                return GestureDetector(
-                    onTap: () {},
-                    child: Stack(fit: StackFit.expand, children: [
-                      _ImageBuilder(image: allFiles[itemIndex][1]),
-                      Container(
-                          child: Column(
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              children: [
-                            allFiles[itemIndex][0].fileType == 'video'
-                                ? Row(
-                                    children: [
-                                      Container(
-                                        margin:
-                                            EdgeInsets.only(left: 6, bottom: 6),
-                                        child: Icon(Icons.play_circle_fill,
-                                            size: 15, color: Colors.white),
-                                      ),
-                                    ],
-                                  )
-                                : Container(),
-                            allFiles[itemIndex][0].specialIMG == 'true'
-                                ? Row(
-                                    children: [
-                                      Container(
-                                          margin: EdgeInsets.only(
-                                              left: 6, bottom: 6),
-                                          child: Image.asset(
-                                              "lib/assets/icons/360-graus.png",
-                                              color: Colors.white,
-                                              height: 15)),
-                                    ],
-                                  )
-                                : Container(),
-                            Container(
-                                color: Colors.black.withOpacity(0.3),
-                                height: 20,
-                                child: Row(
-                                  children: [
-                                    Expanded(
-                                      child: Container(
-                                          margin: EdgeInsets.only(left: 4),
-                                          child: allFiles[itemIndex][0]
-                                                      .fileName
-                                                      .length >=
-                                                  14
-                                              ? Text(
-                                                  allFiles[itemIndex][0]
-                                                      .fileName,
-                                                  overflow:
-                                                      TextOverflow.ellipsis,
-                                                  style: TextStyle(
-                                                      color: Colors.white),
-                                                )
-                                              : Text(
-                                                  allFiles[itemIndex][0]
-                                                      .fileName,
-                                                  style: TextStyle(
-                                                      color: Colors.white))),
-                                    )
-                                  ],
-                                ))
-                          ]))
-                    ]));
+                return Column(
+                  children: [
+                    Row(
+                      children: [_dateText(differentDates[itemIndex])],
+                    ),
+                    _imagesOfTheDay(allLists[itemIndex]),
+                  ],
+                );
               }),
         ));
   }
@@ -135,13 +72,11 @@ class _OpenAlbumState extends State<OpenAlbum> {
     );
   }
 
-  _getFilesOfDir() async {
-    /// Create a list with all files mapped with date
-    /*var result =
-        await dbManager.readDirectoryOfFiles(widget.albumsNames[4], openDB);*/
-
+  _getAllFilesOfDir() async {
     var result = await dbManager.readDirectoryFromAllFiles(
         widget.albumsNames[0], openDB);
+
+    print(widget.albumsNames[0]);
 
     for (var element in result) {
       UsableFilesForList usableFile = UsableFilesForList(
@@ -152,59 +87,34 @@ class _OpenAlbumState extends State<OpenAlbum> {
           element['VideoDuration'],
           element['FileOrientation'],
           element['SpecialIMG'],
+          element['CreatedDay'],
           element['Created']);
 
       File thumbFile = File(element['ThumbPath']);
 
       allFiles.add([usableFile, thumbFile]);
-      allFiles.sort((a, b) => b[0].createdDate.compareTo(a[0].createdDate));
+
       setState(() {});
-
-      /*DateTime getConvertedDate =
-      DateTime.fromMillisecondsSinceEpoch(usableFile.createdDate);
-      String convertedDate =
-          '${getConvertedDate.day.toString().padLeft(2, '0')}/${getConvertedDate.month}/${getConvertedDate.year}';
-      Map mapWithDates =
-      await _createMap(element['Created'], convertedDate, usableFile);
-
-      datedFiles.add(mapWithDates);*/
     }
-
-    // _createLists();
+    allFiles.sort((a, b) => b[0].createdDate.compareTo(a[0].createdDate));
+    _createLists();
   }
 
   _createLists() {
+    // Extrai as datas distintas entre o mapa de listas e cria uma lista para cada
     List getDates = [];
 
-    /// Extrai as datas distintas entre o mapa de listas e cria uma lista para cada
-    for (var element in datedFiles) {
-      getDates.add(element['convertedDate']);
+    for (var file in allFiles) {
+      getDates.add(file[0].createdDay);
     }
-    for (var element in getDates.toSet().toList()) {
-      List filesOfTheDay = [];
-      for (var secondElement in datedFiles) {
-        if (secondElement['convertedDate'] == element) {
-          filesOfTheDay.add(secondElement);
-        }
-      }
-      filesOfTheDay
-          .sort((a, b) => b['dayTimeStamp'].compareTo(a['dayTimeStamp']));
-      listOfLists.add(filesOfTheDay);
+    differentDates.addAll(getDates.toSet().toList());
+
+    for (var item in differentDates) {
+      List filesByDay = [];
+      filesByDay
+          .addAll(allFiles.where((element) => element[0].createdDay == item));
+      allLists.add(filesByDay);
     }
-    listOfLists
-        .sort((a, b) => b[0]['dayTimeStamp'].compareTo(a[0]['dayTimeStamp']));
-    setState(() {});
-  }
-
-  _createMap(
-      int timestamp, String convertedDate, UsableFilesForList usableFiles) {
-    Map<String, dynamic> fileToList = {
-      "dayTimeStamp": timestamp,
-      "convertedDate": convertedDate,
-      "file": usableFiles,
-    };
-
-    return fileToList;
   }
 
   _getDisplayName(List<String> albumsNames) {
@@ -214,100 +124,62 @@ class _OpenAlbumState extends State<OpenAlbum> {
     displayName = albumName;
   }
 
-  _imagesOfTheDay(int listIndex) {
+  _imagesOfTheDay(List imagesOfTheDay) {
     return Container(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            margin: EdgeInsets.only(top: 6, left: 6),
-            child: _dateText(listOfLists[listIndex][0]['convertedDate']),
+      child: GridView.builder(
+          physics: ScrollPhysics(),
+          shrinkWrap: true,
+          itemCount: imagesOfTheDay.length,
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            childAspectRatio: 1,
+            crossAxisSpacing: 1,
+            mainAxisSpacing: 1,
+            crossAxisCount: (MediaQuery.of(context).size.width / 95).round(),
           ),
-          Container(
-            margin: EdgeInsets.only(top: 6),
-            child: GridView.builder(
-                physics: ScrollPhysics(),
-                itemCount: listOfLists[listIndex].length,
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  childAspectRatio: 1,
-                  crossAxisSpacing: 1,
-                  mainAxisSpacing: 1,
-                  crossAxisCount:
-                      (MediaQuery.of(context).size.width / 120).round(),
-                ),
-                itemBuilder: (BuildContext context, int itemIndex) {
-                  UsableFilesForList usableFile =
-                      listOfLists[listIndex][itemIndex]['file'];
-
-                  return GestureDetector(
-                      onTap: () {},
-                      child: Stack(fit: StackFit.expand, children: [
-                        Image.file(new File(usableFile.thumbPath),
-                            fit: BoxFit.cover),
-                        Container(
-                            child: Column(
-                                mainAxisAlignment: MainAxisAlignment.end,
+          itemBuilder: (BuildContext context, int itemIndex) {
+            return GestureDetector(
+                onTap: () {},
+                child: Stack(fit: StackFit.expand, children: [
+                  _ImageBuilder(image: imagesOfTheDay[itemIndex][1]),
+                  Container(
+                      child: Column(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                        imagesOfTheDay[itemIndex][0].fileType == 'video'
+                            ? Row(
                                 children: [
-                              usableFile.fileType == 'video'
-                                  ? Row(
-                                      children: [
-                                        Container(
-                                          margin: EdgeInsets.only(
-                                              left: 6, bottom: 6),
-                                          child: Icon(Icons.play_circle_fill,
-                                              size: 15, color: Colors.white),
-                                        ),
-                                      ],
-                                    )
-                                  : Container(),
-                              usableFile.specialIMG == 'true'
-                                  ? Row(
-                                      children: [
-                                        Container(
-                                            margin: EdgeInsets.only(
-                                                left: 6, bottom: 6),
-                                            child: Image.asset(
-                                                "lib/assets/icons/360-graus.png",
-                                                color: Colors.white,
-                                                height: 15)),
-                                      ],
-                                    )
-                                  : Container(),
-                              Container(
-                                  color: Colors.black.withOpacity(0.3),
-                                  height: 20,
-                                  child: Row(
-                                    children: [
-                                      Expanded(
-                                        child: Container(
-                                            margin: EdgeInsets.only(left: 4),
-                                            child: usableFile.fileName.length >=
-                                                    14
-                                                ? Text(
-                                                    usableFile.fileName,
-                                                    overflow:
-                                                        TextOverflow.ellipsis,
-                                                    style: TextStyle(
-                                                        color: Colors.white),
-                                                  )
-                                                : Text(usableFile.fileName,
-                                                    style: TextStyle(
-                                                        color: Colors.white))),
-                                      )
-                                    ],
-                                  ))
-                            ]))
-                      ]));
-                }),
-          ),
-        ],
-      ),
+                                  Container(
+                                    margin: EdgeInsets.only(left: 6, bottom: 6),
+                                    child: Icon(Icons.play_circle_fill,
+                                        size: 15, color: Colors.white),
+                                  ),
+                                ],
+                              )
+                            : Container(),
+                        imagesOfTheDay[itemIndex][0].specialIMG == 'true'
+                            ? Row(
+                                children: [
+                                  Container(
+                                      margin:
+                                          EdgeInsets.only(left: 6, bottom: 6),
+                                      child: Image.asset(
+                                          "lib/assets/icons/360-graus.png",
+                                          color: Colors.white,
+                                          height: 15)),
+                                ],
+                              )
+                            : Container(),
+                      ]))
+                ]));
+          }),
     );
   }
 
   _dateText(String text) {
-    return Text(text, style: TextStyle(fontFamily: 'RobotoMono', fontSize: 13));
+    return Container(
+        margin: EdgeInsets.all(8),
+        child: Text(text,
+            style: TextStyle(fontFamily: 'RobotoMono', fontSize: 15)));
   }
 }
 
@@ -334,18 +206,15 @@ class _ImageBuilderState extends State<_ImageBuilder> {
         key: Key('firstImage'),
         height: 150,
         width: 150,
-        child:
-            Image.file(image, fit: BoxFit.cover, cacheWidth: 60, height: 60));
+        color: const Color(0xffabb2b9));
     _fullImageLoader();
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedSwitcher(
-      duration: const Duration(milliseconds: 2000),
+    return Container(
       child: child,
-      switchInCurve: Curves.ease,
     );
   }
 
@@ -356,7 +225,7 @@ class _ImageBuilderState extends State<_ImageBuilder> {
         height: 150,
         width: 150,
         child:
-            Image.file(image, fit: BoxFit.cover, cacheWidth: 200, height: 200));
+            Image.file(image, fit: BoxFit.cover, cacheWidth: 180, height: 180));
 
     /// Checa se o widget esta montado antes de chamar o setstate
     if (this.mounted) {

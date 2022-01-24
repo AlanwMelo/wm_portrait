@@ -158,6 +158,7 @@ class _OpenPresentationState extends State<OpenPresentation> {
           element['VideoDuration'],
           element['FileOrientation'],
           element['SpecialIMG'],
+          element['CreatedDay'],
           element['Created']);
 
       File thumbFile = File(element['ThumbPath']);

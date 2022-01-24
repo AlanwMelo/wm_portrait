@@ -215,7 +215,6 @@ class _MyHomePageState extends State<_MyHomePage>
         for (var element in usableDirectories) {
           if (directoriesInDB.toString().contains(element.path)) {
             print('DIR already in DB... DIR: ${element.path}');
-            //directoriesToUpdate.add(element);
 
             int lastModified = await directoriesInDB.firstWhere(
                 (directoriesInDBElement) => directoriesInDBElement
@@ -227,7 +226,7 @@ class _MyHomePageState extends State<_MyHomePage>
               directoriesToUpdate.add(element);
             }
           } else {
-            if(element.path.toLowerCase().contains('cancun')){
+            if (element.path.toLowerCase().contains('cancun')) {
               directoriesToUpdate.add(element);
             }
             await dbManager.addDirectoryToDB(element.path, openDB,
@@ -261,7 +260,8 @@ class _MyHomePageState extends State<_MyHomePage>
           mainAxisAlignment: MainAxisAlignment.start,
           children: <Widget>[
             GestureDetector(
-              onTap: () async {/*
+              onTap: () async {
+                /*
                 await _loadDirectoriesFromDB();
                 _syncDirectories();*/
               },
@@ -287,6 +287,16 @@ class _MyHomePageState extends State<_MyHomePage>
                 child: Text("Colors"),
               ),
             ),
+            GestureDetector(
+              onTap: () async {
+                _syncDirectories();
+              },
+              child: Container(
+                height: 50,
+                color: Colors.limeAccent,
+                child: Text("Cria albums"),
+              ),
+            ),
           ],
         ),
       ),
@@ -301,8 +311,8 @@ class _MyHomePageState extends State<_MyHomePage>
         Navigator.push(
             context,
             MaterialPageRoute(
-                builder: (context) => OpenAlbum(
-                    albumsNames: [selectedAlbum], openDB: openDB)));
+                builder: (context) =>
+                    OpenAlbum(albumsNames: [selectedAlbum], openDB: openDB)));
       },
     );
   }
