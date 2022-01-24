@@ -1,3 +1,4 @@
+/*
 import 'dart:io';
 import 'package:clippy_flutter/clippy_flutter.dart';
 import 'package:device_info/device_info.dart';
@@ -8,22 +9,21 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:flutter_video_info/flutter_video_info.dart';
-import 'package:panorama/panorama.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:portrait/classes/appColors.dart';
-import 'package:portrait/classes/classes.dart';
+import 'package:portrait/classes/usableFilesForList.dart';
 import 'package:portrait/db/dbManager.dart';
+import 'package:portrait/screens/slideShow.dart';
 import 'package:portrait/screens/slideshow.dart';
 import 'package:video_compress/video_compress.dart';
 
 class OpenList extends StatefulWidget {
   final String listName;
-  final double screenSize;
   final String appName;
 
-  const OpenList({Key key, this.listName, this.screenSize, this.appName})
+  const OpenList({Key key, this.listName, this.appName})
       : super(key: key);
 
   @override
@@ -135,7 +135,7 @@ class _OpenListState extends State<OpenList> {
                                   await Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                          builder: (context) => Slideshow(
+                                          builder: (context) => NewSlideShow(
                                                 slideShowList: filesList,
                                                 startIndex: index,
                                               )));
@@ -672,10 +672,10 @@ class _OpenListState extends State<OpenList> {
         await Navigator.push(
             context,
             MaterialPageRoute(
-                builder: (context) => Slideshow(
-                      slideShowList: filesList,
-                      startIndex: 0,
-                    )));
+                builder: (context) => NewSlideShow(
+                  slideShowList: filesList,
+                  startIndex: 0,
+                )));
       },
       child: Container(
         margin: EdgeInsets.only(bottom: 8),
@@ -684,6 +684,27 @@ class _OpenListState extends State<OpenList> {
       ),
     );
   }
+
+  */
+/*arcCenterButton() {
+    return GestureDetector(
+      onTap: () async {
+        await Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) => Slideshow(
+                  slideShowList: filesList,
+                  startIndex: 0,
+                )));
+      },
+      child: Container(
+        margin: EdgeInsets.only(bottom: 8),
+        child: Icon(Icons.play_circle_outline,
+            size: 40, color: AppColorsDialga().white()),
+      ),
+    );
+  }*//*
+
 
   arcRightButton() {
     return GestureDetector(
@@ -768,3 +789,4 @@ class _OpenListState extends State<OpenList> {
     }
   }
 }
+*/
