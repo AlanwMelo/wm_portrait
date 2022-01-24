@@ -15,10 +15,11 @@ Atualmente a aplicação se encontra pronta para uso em casos simples, a tela de
 
 ## Em desenvolvimento
 
-Está sendo realizada a migração do betterPlayer para o VLC player, pois ele apresenta melhor performance.
-Ajustes no swipper.
+Adição da função galeria ao app.
 
 ## Next Steps
 
 - Implementação de controladores de brilho, seja por luminosidade ou timer.
+- Melhorias na performance dos vídeos, e gridview. 
 - Ajustes para melhoria de performance no carregamento de imagens/criação de thumbnails.
+- IoT
