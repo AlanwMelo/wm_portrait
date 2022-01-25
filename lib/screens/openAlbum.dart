@@ -46,20 +46,19 @@ class _OpenAlbumState extends State<OpenAlbum> {
     return Scaffold(
         appBar: _appBar(),
         body: Container(
-          child: ListView.builder(
-              shrinkWrap: true,
-              itemCount: differentDates.length,
-              itemBuilder: (BuildContext context, int itemIndex) {
-                return Column(
-                  children: [
-                    Row(
-                      children: [_dateText(differentDates[itemIndex])],
-                    ),
-                    _imagesOfTheDay(allLists[itemIndex]),
-                  ],
-                );
-              }),
-        ));
+            child: ListView.builder(
+                shrinkWrap: true,
+                itemCount: differentDates.length,
+                itemBuilder: (BuildContext context, int itemIndex) {
+                  return Column(
+                    children: [
+                      Row(
+                        children: [_dateText(differentDates[itemIndex])],
+                      ),
+                      _imagesOfTheDay(allLists[itemIndex]),
+                    ],
+                  );
+                })));
   }
 
   _appBar() {
@@ -71,10 +70,9 @@ class _OpenAlbumState extends State<OpenAlbum> {
             centerTitle: true,
             title: GestureDetector(
                 onTap: () async {
-                  Database openDB = await dbManager.dbManagerStartDB();
-                  await FileProcessor().generateLocalInfo(
-                      widget.albumsNames[0], openDB,
-                      forceResync: true);
+                  setState(() {
+                    print('clever');
+                  });
                 },
                 child: Text(displayName)),
             elevation: 0,
@@ -83,7 +81,7 @@ class _OpenAlbumState extends State<OpenAlbum> {
 
   _getAllFilesOfDir() async {
     var result = await dbManager.readDirectoryFromAllFiles(
-        widget.albumsNames[1], openDB);
+        widget.albumsNames[0], openDB);
 
     for (var element in result) {
       UsableFilesForList usableFile = UsableFilesForList(
@@ -100,8 +98,6 @@ class _OpenAlbumState extends State<OpenAlbum> {
       File thumbFile = File(element['ThumbPath']);
 
       allFiles.add([usableFile, thumbFile]);
-
-      setState(() {});
     }
     allFiles.sort((a, b) => b[0].createdDate.compareTo(a[0].createdDate));
     _createLists();
@@ -122,6 +118,7 @@ class _OpenAlbumState extends State<OpenAlbum> {
           .addAll(allFiles.where((element) => element[0].createdDay == item));
       allLists.add(filesByDay);
     }
+    setState(() {});
   }
 
   _getDisplayName(List<String> albumsNames) {
@@ -132,53 +129,51 @@ class _OpenAlbumState extends State<OpenAlbum> {
   }
 
   _imagesOfTheDay(List imagesOfTheDay) {
+    List<Widget> myGrid = [];
+    imagesOfTheDay.forEach((item) {
+      myGrid.add(Container(
+        height: (MediaQuery.of(context).size.width / 4) - 3,
+        width: (MediaQuery.of(context).size.width / 4) - 3,
+        child: Stack(fit: StackFit.expand, children: [
+          _ImageBuilder(image: item[1]),
+          Container(
+              child:
+                  Column(mainAxisAlignment: MainAxisAlignment.end, children: [
+            item[0].fileType == 'video'
+                ? Row(
+                    children: [
+                      Container(
+                        margin: EdgeInsets.only(left: 6, bottom: 6),
+                        child: Icon(Icons.play_circle_fill,
+                            size: 15, color: Colors.white),
+                      ),
+                    ],
+                  )
+                : Container(),
+            item[0].specialIMG == 'true'
+                ? Row(
+                    children: [
+                      Container(
+                          margin: EdgeInsets.only(left: 6, bottom: 6),
+                          child: Image.asset("lib/assets/icons/360-graus.png",
+                              color: Colors.white, height: 15)),
+                    ],
+                  )
+                : Container(),
+          ]))
+        ]),
+      ));
+    });
     return Container(
-      child: GridView.builder(
-          physics: ScrollPhysics(),
-          shrinkWrap: true,
-          itemCount: imagesOfTheDay.length,
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            childAspectRatio: 1,
-            crossAxisSpacing: 1,
-            mainAxisSpacing: 1,
-            crossAxisCount: (MediaQuery.of(context).size.width / 95).round(),
-          ),
-          itemBuilder: (BuildContext context, int itemIndex) {
-            return GestureDetector(
-                onTap: () {},
-                child: Stack(fit: StackFit.expand, children: [
-                  _ImageBuilder(image: imagesOfTheDay[itemIndex][1]),
-                  Container(
-                      child: Column(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                        imagesOfTheDay[itemIndex][0].fileType == 'video'
-                            ? Row(
-                                children: [
-                                  Container(
-                                    margin: EdgeInsets.only(left: 6, bottom: 6),
-                                    child: Icon(Icons.play_circle_fill,
-                                        size: 15, color: Colors.white),
-                                  ),
-                                ],
-                              )
-                            : Container(),
-                        imagesOfTheDay[itemIndex][0].specialIMG == 'true'
-                            ? Row(
-                                children: [
-                                  Container(
-                                      margin:
-                                          EdgeInsets.only(left: 6, bottom: 6),
-                                      child: Image.asset(
-                                          "lib/assets/icons/360-graus.png",
-                                          color: Colors.white,
-                                          height: 15)),
-                                ],
-                              )
-                            : Container(),
-                      ]))
-                ]));
-          }),
+      margin: EdgeInsets.only(right: 3, left: 3),
+      child: Align(
+        alignment: Alignment.topLeft,
+        child: Wrap(
+          runSpacing: 2,
+          spacing: 2,
+          children: myGrid,
+        ),
+      ),
     );
   }
 

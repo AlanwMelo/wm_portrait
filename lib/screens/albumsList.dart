@@ -31,7 +31,52 @@ class _AlbumsListState extends State<AlbumsList> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    List<Widget> myGrid = [];
+    widget.albumFolders.forEach((item) {
+      myGrid.add(Container(
+        height: (MediaQuery.of(context).size.width / 3) - 3,
+        width: (MediaQuery.of(context).size.width / 3) - 4,
+        child: GestureDetector(
+          onTap: () => widget.presentation!
+              ? widget.itemTapped(item[3])
+              : widget.itemTapped(item[3]),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                  child: Container(
+                      child: item[1] == ''
+                          ? MyClipRRect()
+                              .myClipRRect(Container(color: Colors.blueAccent))
+                          : MyClipRRect().myClipRRect(Container(
+                              width: 120,
+                              child: Image.file(File(item[1]),
+                                  fit: BoxFit.cover,
+                                  cacheWidth: 180,
+                                  height: 180))))),
+              Container(
+                  height: 40,
+                  child: Text(item[0],
+                      style: TextStyle(fontSize: 15, fontFamily: 'RobotoMono')))
+            ],
+          ),
+        ),
+      ));
+    });
+    return SingleChildScrollView(
+      child: Container(
+        margin: EdgeInsets.only(right: 3, left: 3),
+        child: Align(
+          alignment: Alignment.topLeft,
+          child: Wrap(
+            runSpacing: 2,
+            spacing: 2,
+            children: myGrid,
+          ),
+        ),
+      ),
+    );
+    /*return Container(
       padding: EdgeInsets.all(6),
       child: GridView.builder(
           itemCount: widget.albumFolders.length,
@@ -70,6 +115,6 @@ class _AlbumsListState extends State<AlbumsList> {
               ),
             );
           }),
-    );
+    );*/
   }
 }

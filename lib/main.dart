@@ -84,6 +84,11 @@ class _MyHomePageState extends State<_MyHomePage>
   void initState() {
     _openDB();
     _initTextControllers();
+    syncingStreamClass.streamControllerStream.listen((event) {
+      if (event == 'update state') {
+        setState(() {});
+      }
+    });
     super.initState();
   }
 
@@ -186,7 +191,8 @@ class _MyHomePageState extends State<_MyHomePage>
     dbLoaded = !dbLoaded;
     syncFiles = SyncFiles(syncingStreamClass, openDB);
     await _loadDirectoriesFromDB();
-    _loadAllFiles();
+    //_loadAllFiles();
+    _loadDCIM();
     log('DB Initialized');
   }
 
@@ -260,7 +266,6 @@ class _MyHomePageState extends State<_MyHomePage>
   }
 
   _photos() {
-    print('build');
     return Container(
       child: Center(
         child: Column(
@@ -268,9 +273,13 @@ class _MyHomePageState extends State<_MyHomePage>
           children: <Widget>[
             dbLoaded && stringDCIMDirs.length > 0
                 ? Expanded(
-                  child: Container(
-                  child: OpenAlbum(albumsNames: stringDCIMDirs, openDB: openDB, hideAppBar: true,)),
-                )
+                    child: Container(
+                        child: OpenAlbum(
+                      albumsNames: stringDCIMDirs,
+                      openDB: openDB,
+                      hideAppBar: true,
+                    )),
+                  )
                 : Container(),
             /*GestureDetector(
               onTap: () async {
@@ -330,8 +339,6 @@ class _MyHomePageState extends State<_MyHomePage>
     );
   }
 
-  Stream<String> syncingFilesStream() async* {}
-
   _getAlbumsData() async {
     directoriesWithData.clear();
     for (Directory album in usableDirectories) {
@@ -360,7 +367,6 @@ class _MyHomePageState extends State<_MyHomePage>
     }
     directoriesWithData.sort((a, b) =>
         b[2].millisecondsSinceEpoch.compareTo(a[2].millisecondsSinceEpoch));
-    setState(() {});
     return true;
   }
 
@@ -368,24 +374,12 @@ class _MyHomePageState extends State<_MyHomePage>
     bool syncRunning = false;
     Timer? debounceState;
 
-    _setState() {
-      debounceState = Timer(Duration(milliseconds: 1500), () {
-        if (syncRunning) {
-          setState(() {});
-          _setState();
-        } else {
-          debounceState!.cancel();
-        }
-      });
-    }
-
     syncRunning = !syncRunning;
     dcimDirs.addAll(usableDirectories
         .where((dir) => dir.path.toLowerCase().contains('dcim/camera')));
     for (Directory dir in dcimDirs) {
       stringDCIMDirs.add(dir.path);
     }
-    _setState();
     await syncFiles.syncFiles(dcimDirs, (answer) {});
     syncRunning = !syncRunning;
     return true;

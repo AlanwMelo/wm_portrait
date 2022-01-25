@@ -1,6 +1,12 @@
 import 'dart:developer';
+import 'dart:io';
+import 'dart:typed_data';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/services.dart';
 import 'package:path/path.dart';
 import 'package:portrait/classes/checkDir.dart';
+
+//import 'package:photo_manager/photo_manager.dart';
 import 'package:sqflite/sqflite.dart';
 
 class MyDbManager {
@@ -164,6 +170,7 @@ class MyDbManager {
       where: 'FileDir = ?',
       whereArgs: ['$path'],
     );
+
     return result;
   }
 
