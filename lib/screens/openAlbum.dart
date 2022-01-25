@@ -10,8 +10,13 @@ import 'package:sqflite/sqflite.dart';
 class OpenAlbum extends StatefulWidget {
   final List<String> albumsNames;
   final Database openDB;
+  final bool hideAppBar;
 
-  const OpenAlbum({Key? key, required this.albumsNames, required this.openDB})
+  const OpenAlbum(
+      {Key? key,
+      required this.albumsNames,
+      required this.openDB,
+      this.hideAppBar = false})
       : super(key: key);
 
   @override
@@ -58,24 +63,27 @@ class _OpenAlbumState extends State<OpenAlbum> {
   }
 
   _appBar() {
-    return AppBar(
-      centerTitle: true,
-      title: GestureDetector(
-          onTap: () async {
-            Database openDB = await dbManager.dbManagerStartDB();
-            await FileProcessor().generateLocalInfo(
-                widget.albumsNames[0], openDB,
-                forceResync: true);
-          },
-          child: Text(displayName)),
-      elevation: 0,
-    );
+    return widget.hideAppBar
+        ? AppBar(
+            toolbarHeight: 0,
+          )
+        : AppBar(
+            centerTitle: true,
+            title: GestureDetector(
+                onTap: () async {
+                  Database openDB = await dbManager.dbManagerStartDB();
+                  await FileProcessor().generateLocalInfo(
+                      widget.albumsNames[0], openDB,
+                      forceResync: true);
+                },
+                child: Text(displayName)),
+            elevation: 0,
+          );
   }
 
   _getAllFilesOfDir() async {
     var result = await dbManager.readDirectoryFromAllFiles(
-        widget.albumsNames[0], openDB);
-
+        widget.albumsNames[1], openDB);
 
     for (var element in result) {
       UsableFilesForList usableFile = UsableFilesForList(
@@ -118,7 +126,7 @@ class _OpenAlbumState extends State<OpenAlbum> {
 
   _getDisplayName(List<String> albumsNames) {
     String albumName;
-    albumName = albumsNames[0].substring(0, albumsNames[0].length-1);
+    albumName = albumsNames[0].substring(0, albumsNames[0].length - 1);
     albumName = albumName.substring(albumName.lastIndexOf('/') + 1);
     displayName = albumName;
   }

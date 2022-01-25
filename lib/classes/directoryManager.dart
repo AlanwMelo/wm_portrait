@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer';
 import 'dart:io';
 import 'dart:isolate';
 
@@ -85,7 +86,7 @@ _isolatedDirDigger(Map argsMap) {
           }
         }
       } catch (e) {
-        print(e);
+        log(e.toString());
       }
     }
   }

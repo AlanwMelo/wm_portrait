@@ -53,6 +53,7 @@ class _MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<_MyHomePage>
     with SingleTickerProviderStateMixin {
   late Database openDB;
+  bool dbLoaded = false;
   MyDbManager dbManager = MyDbManager();
 
   int animatedTextIndex = 0;
@@ -61,6 +62,8 @@ class _MyHomePageState extends State<_MyHomePage>
   late List<Map> directoriesInDB;
   List<Directory> usableDirectories = [];
   List<List> directoriesWithData = [];
+  List<Directory> dcimDirs = [];
+  List<String> stringDCIMDirs = [];
 
   // Animated Text color controllers
   late Animation<Color?> photoAnimation;
@@ -75,6 +78,7 @@ class _MyHomePageState extends State<_MyHomePage>
   final SyncingStream syncingStreamClass = SyncingStream();
 
   late SyncFiles syncFiles;
+  Timer? dirDebounce;
 
   @override
   void initState() {
@@ -179,8 +183,10 @@ class _MyHomePageState extends State<_MyHomePage>
 
   _openDB() async {
     openDB = await dbManager.dbManagerStartDB();
+    dbLoaded = !dbLoaded;
     syncFiles = SyncFiles(syncingStreamClass, openDB);
     await _loadDirectoriesFromDB();
+    _loadAllFiles();
     log('DB Initialized');
   }
 
@@ -200,10 +206,21 @@ class _MyHomePageState extends State<_MyHomePage>
   }
 
   /// Cria diretorios no banco de dados se nao existirem e aponta os que devem ser atualizados
-  _syncDirectories() async {
+  _syncDirectories(Function(String) answer) async {
     List<Directory> directoriesToUpdate = [];
+
+    _dirDebounceTimer() async {
+      if (dirDebounce?.isActive ?? false) {
+        dirDebounce!.cancel();
+      }
+      dirDebounce = Timer(Duration(milliseconds: 1500), () async {
+        answer('complete');
+      });
+    }
+
     syncFiles.syncDirectories((event) async {
       if (event == 'done') {
+        _dirDebounceTimer();
         for (var element in usableDirectories) {
           if (directoriesInDB.toString().contains(element.path)) {
             log('DIR already in DB... DIR: ${element.path}');
@@ -216,21 +233,19 @@ class _MyHomePageState extends State<_MyHomePage>
                 element.statSync().modified.millisecondsSinceEpoch) {
               /// Se o diretorio foi alterado desde sua ultima observação
               directoriesToUpdate.add(element);
+              //Alterar ultima data de verificação do dir aqui
             }
           } else {
             await dbManager.addDirectoryToDB(element.path, openDB,
                 element.statSync().modified.millisecondsSinceEpoch);
+            directoriesToUpdate.add(element);
           }
         }
-        await syncFiles.syncFiles([usableDirectories[1]]);
-        _getAlbumsData();
-        // trocar para directoriesToUpdate
       } else if (!usableDirectories.toString().contains(event)) {
         usableDirectories.add(Directory(event));
-        _getAlbumsData();
       }
     });
-    _getAlbumsData();
+    return true;
   }
 
   _loadDirectoriesFromDB() async {
@@ -238,7 +253,6 @@ class _MyHomePageState extends State<_MyHomePage>
     for (var element in directoriesInDB) {
       if (!usableDirectories.contains(element['DirectoryPath'])) {
         usableDirectories.add(Directory(element['DirectoryPath']));
-        setState(() {});
       }
     }
     _getAlbumsData();
@@ -246,16 +260,23 @@ class _MyHomePageState extends State<_MyHomePage>
   }
 
   _photos() {
+    print('build');
     return Container(
       child: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.start,
           children: <Widget>[
-            GestureDetector(
+            dbLoaded && stringDCIMDirs.length > 0
+                ? Expanded(
+                  child: Container(
+                  child: OpenAlbum(albumsNames: stringDCIMDirs, openDB: openDB, hideAppBar: true,)),
+                )
+                : Container(),
+            /*GestureDetector(
               onTap: () async {
-                /*
+                */ /*
                 await _loadDirectoriesFromDB();
-                _syncDirectories();*/
+                _syncDirectories();*/ /*
               },
               child: Container(
                 height: 50,
@@ -281,15 +302,14 @@ class _MyHomePageState extends State<_MyHomePage>
             ),
             GestureDetector(
               onTap: () async {
-                _syncDirectories();
-                setState(() {});
+                //_syncDirectories();
               },
               child: Container(
                 height: 50,
                 color: Colors.limeAccent,
                 child: Text("Cria albums"),
               ),
-            ),
+            ),*/
           ],
         ),
       ),
@@ -326,12 +346,60 @@ class _MyHomePageState extends State<_MyHomePage>
       dirName = dirName.substring(0, dirName.lastIndexOf('/'));
       dirName = dirName.substring(dirName.lastIndexOf('/') + 1);
 
-      log('adding: ${[dirName, thumbPath, album.statSync().modified, album.path]}');
-      directoriesWithData
-          .add([dirName, thumbPath, album.statSync().modified, album.path]);
+      log('adding: ${[
+        dirName,
+        thumbPath,
+        album.statSync().changed,
+        album.path
+      ]}');
+
+      if (!album.path.toLowerCase().contains('dcim/camera')) {
+        directoriesWithData
+            .add([dirName, thumbPath, album.statSync().changed, album.path]);
+      }
     }
-    directoriesWithData.sort((a, b) => b[0].compareTo(a[0]));
+    directoriesWithData.sort((a, b) =>
+        b[2].millisecondsSinceEpoch.compareTo(a[2].millisecondsSinceEpoch));
     setState(() {});
     return true;
+  }
+
+  _loadDCIM() async {
+    bool syncRunning = false;
+    Timer? debounceState;
+
+    _setState() {
+      debounceState = Timer(Duration(milliseconds: 1500), () {
+        if (syncRunning) {
+          setState(() {});
+          _setState();
+        } else {
+          debounceState!.cancel();
+        }
+      });
+    }
+
+    syncRunning = !syncRunning;
+    dcimDirs.addAll(usableDirectories
+        .where((dir) => dir.path.toLowerCase().contains('dcim/camera')));
+    for (Directory dir in dcimDirs) {
+      stringDCIMDirs.add(dir.path);
+    }
+    _setState();
+    await syncFiles.syncFiles(dcimDirs, (answer) {});
+    syncRunning = !syncRunning;
+    return true;
+  }
+
+  _loadAllFiles() async {
+    await _syncDirectories((answer) async {
+      List<Directory> dirs = [];
+      _getAlbumsData();
+      await _loadDCIM();
+      dirs = usableDirectories;
+      dirs.removeWhere((dir) => dir.path.toLowerCase().contains('dcim/camera'));
+      await syncFiles.syncFiles(dirs, (answer) {});
+      _getAlbumsData();
+    });
   }
 }

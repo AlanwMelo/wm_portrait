@@ -1,12 +1,6 @@
 import 'dart:developer';
-import 'dart:io';
-import 'dart:typed_data';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/services.dart';
 import 'package:path/path.dart';
 import 'package:portrait/classes/checkDir.dart';
-
-//import 'package:photo_manager/photo_manager.dart';
 import 'package:sqflite/sqflite.dart';
 
 class MyDbManager {
@@ -165,14 +159,11 @@ class MyDbManager {
 
   readDirectoryFromAllFiles(String path, Database openDB) async {
     log('Reading from device_files where dir = $path');
-    print('???? $path');
-
     List<Map> result = await openDB.query(
       'device_files',
       where: 'FileDir = ?',
       whereArgs: ['$path'],
     );
-
     return result;
   }
 
@@ -181,7 +172,6 @@ class MyDbManager {
   /// ############ START DIRECTORIES LIST MANAGEMENT ############
 
   addDirectoryToDB(String path, Database db, int modified) async {
-
     Map<String, dynamic> _mapToDB = {
       "DirectoryPath": path,
       "Modified": modified

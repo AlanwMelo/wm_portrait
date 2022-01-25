@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:permission_handler/permission_handler.dart';
@@ -17,8 +18,13 @@ class SyncFiles {
   MyDbManager dbManager = MyDbManager();
 
   syncDirectories(Function(String) dirSynced) async {
-    await Permission.storage.request().isGranted.whenComplete(() {});
-    if (await Permission.storage.request().isGranted) {
+    await Permission.storage
+        .request()
+        .isGranted
+        .whenComplete(() {});
+    if (await Permission.storage
+        .request()
+        .isGranted) {
       syncingStreamClass.streamControllerSink.add('start');
       syncingStreamClass.streamControllerSink.add('Syncing directories list');
       await DirectoryManager()
@@ -28,28 +34,33 @@ class SyncFiles {
         }
         dirSynced('done');
       });
-    } else {
-      print('syncfiles else?');
     }
   }
 
-  syncFiles(List<Directory> directories) async {
+  syncFiles(List<Directory> directories, Function(String) answer) async {
     if (directories.isNotEmpty) {
       syncingStreamClass.streamControllerSink.add('start');
       directories.sort(
-          (a, b) => b.statSync().modified.compareTo(a.statSync().modified));
+              (a, b) =>
+              b
+                  .statSync()
+                  .modified
+                  .compareTo(a
+                  .statSync()
+                  .modified));
 
-      print(directories.where(
-          (element) => element.path.toLowerCase().contains('dcim/camera')));
+      try {
+        for (var directory in directories) {
+          String dirName =
+          directory.path.substring(0, directory.path.lastIndexOf('/'));
+          dirName = dirName.substring(dirName.lastIndexOf('/') + 1);
 
-      for (var directory in directories) {
-        String dirName =
-            directory.path.substring(0, directory.path.lastIndexOf('/'));
-        dirName = dirName.substring(dirName.lastIndexOf('/') + 1);
-
-        syncingStreamClass.streamControllerSink.add('Syncing $dirName');
-
-        await FileProcessor().generateLocalInfo(directory.path, openDB);
+          syncingStreamClass.streamControllerSink.add('Syncing $dirName');
+          await FileProcessor().generateLocalInfo(directory.path, openDB);
+          answer(directory.path);
+        }
+      } catch (e) {
+        log(e.toString());
       }
       syncingStreamClass.streamControllerSink.add('stop');
     } else {}

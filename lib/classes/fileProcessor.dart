@@ -11,6 +11,7 @@ import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:portrait/db/dbManager.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:video_compress/video_compress.dart';
+import 'dart:developer';
 
 class FileProcessor {
   generateLocalInfo(String path, Database openDB,
@@ -28,8 +29,6 @@ class FileProcessor {
         await dbManager.readDirectoryFromAllFiles(path, openDB);
     List<String> filesToSync = [];
     List<String> filesToDelete = [];
-
-    print(filesInDir.length);
 
     if (!forceResync) {
       /// Arquivos que estao na pasta mas não estão no DB
@@ -79,21 +78,20 @@ class FileProcessor {
       try {
         File('$thumbName').deleteSync();
       } catch (e) {
-        print(e);
+        log(e.toString());
       }
     }
 
     if (File('$thumbName').existsSync()) {
-      print('File already exists, skipping...');
+      log('File already exists, skipping...');
     } else {
-      print('Generating image info for image: $thumbName');
+      log('Generating image info for image: $thumbName');
 
       try {
         String specialIMG = 'false';
         String orientation = 'portrait';
         DateTime dateTime = DateTime.fromMillisecondsSinceEpoch(0);
 
-        print(thisFile);
         Future<Map<String, IfdTag>> data =
             readExifFromBytes(await thisFile.readAsBytes());
 
@@ -188,10 +186,10 @@ class FileProcessor {
               openDB: openDB);
         }
       } catch (e) {
-        print(e);
+        log(e.toString());
       }
 
-      print('Info generated for image: $thumbName');
+      log('Info generated for image: $thumbName');
     }
 
     return true;
@@ -208,15 +206,15 @@ class FileProcessor {
       try {
         File('$thumbNameWithoutExtension.jpg').deleteSync();
       } catch (e) {
-        print(e);
+        log(e.toString());
       }
     }
 
     try {
       if (File('$thumbNameWithoutExtension.jpg').existsSync()) {
-        print('File already exists, skipping...');
+        log('File already exists, skipping...');
       } else {
-        print('Generating video info for video: $thumbName');
+        log('Generating video info for video: $thumbName');
 
         final videoInfo = FlutterVideoInfo();
         String videoLength = '';
@@ -263,10 +261,10 @@ class FileProcessor {
             createdDay: convertedDate,
             openDB: openDB);
 
-        print('Info generated for video: $thumbName');
+        log('Info generated for video: $thumbName');
       }
     } catch (e) {
-      print(e);
+      log(e.toString());
     }
     return true;
   }
