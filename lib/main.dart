@@ -74,7 +74,6 @@ class _MyHomePageState extends State<_MyHomePage>
   List<Widget> swiperItems = [];
 
   // Stream of syncing files used in the whole APP
-  bool syncRunning = false;
   final SyncingStream syncingStreamClass = SyncingStream();
 
   late SyncFiles syncFiles;
@@ -371,17 +370,14 @@ class _MyHomePageState extends State<_MyHomePage>
   }
 
   _loadDCIM() async {
-    bool syncRunning = false;
-    Timer? debounceState;
-
-    syncRunning = !syncRunning;
     dcimDirs.addAll(usableDirectories
         .where((dir) => dir.path.toLowerCase().contains('dcim/camera')));
     for (Directory dir in dcimDirs) {
       stringDCIMDirs.add(dir.path);
     }
-    await syncFiles.syncFiles(dcimDirs, (answer) {});
-    syncRunning = !syncRunning;
+    await syncFiles.syncFiles(dcimDirs, (answer) {
+      setState(() {});
+    });
     return true;
   }
 

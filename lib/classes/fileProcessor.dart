@@ -31,7 +31,8 @@ class FileProcessor {
     List<String> filesToDelete = [];
 
     if (!forceResync) {
-      /// Arquivos que estao na pasta mas não estão no DB
+      /// Rotina muito pesada alterar para isolate
+      /*/// Arquivos que estao na pasta mas não estão no DB
       for (var element in filesInDir) {
         if (!mapOfFilesInDB
             .toString()
@@ -48,7 +49,7 @@ class FileProcessor {
             .contains(element['FilePath'].toString().toLowerCase())) {
           filesToDelete.add(element['FilePath']);
         }
-      }
+      }*/
     } else {
       filesToSync = filesInDir;
     }
