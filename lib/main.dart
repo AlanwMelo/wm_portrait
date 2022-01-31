@@ -190,8 +190,8 @@ class _MyHomePageState extends State<_MyHomePage>
     dbLoaded = !dbLoaded;
     syncFiles = SyncFiles(syncingStreamClass, openDB);
     await _loadDirectoriesFromDB();
-    //_loadAllFiles();
     _loadDCIM();
+    _getAlbumsData();
     log('DB Initialized');
   }
 
@@ -260,7 +260,6 @@ class _MyHomePageState extends State<_MyHomePage>
         usableDirectories.add(Directory(element['DirectoryPath']));
       }
     }
-    _getAlbumsData();
     return true;
   }
 
@@ -352,7 +351,7 @@ class _MyHomePageState extends State<_MyHomePage>
       dirName = dirName.substring(0, dirName.lastIndexOf('/'));
       dirName = dirName.substring(dirName.lastIndexOf('/') + 1);
 
-      log('adding: ${[
+      log('(Main) Adding: ${[
         dirName,
         thumbPath,
         album.statSync().changed,
@@ -379,17 +378,5 @@ class _MyHomePageState extends State<_MyHomePage>
       setState(() {});
     });
     return true;
-  }
-
-  _loadAllFiles() async {
-    await _syncDirectories((answer) async {
-      List<Directory> dirs = [];
-      _getAlbumsData();
-      await _loadDCIM();
-      dirs = usableDirectories;
-      dirs.removeWhere((dir) => dir.path.toLowerCase().contains('dcim/camera'));
-      await syncFiles.syncFiles(dirs, (answer) {});
-      _getAlbumsData();
-    });
   }
 }

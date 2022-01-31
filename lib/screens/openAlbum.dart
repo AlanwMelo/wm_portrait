@@ -68,21 +68,13 @@ class _OpenAlbumState extends State<OpenAlbum> {
           )
         : AppBar(
             centerTitle: true,
-            title: GestureDetector(
-                onTap: () async {
-                  setState(() {
-                    print('clever');
-                  });
-                },
-                child: Text(displayName)),
+            title: Text(displayName),
             elevation: 0,
           );
   }
 
   _getAllFilesOfDir() async {
     for (var element in widget.albumsNames) {
-      print(element);
-
       var result = await dbManager.readDirectoryFromAllFiles(element, openDB);
 
       for (var element in result) {
@@ -224,7 +216,7 @@ class _ImageBuilderState extends State<_ImageBuilder> {
   }
 
   _fullImageLoader() async {
-    await Future.delayed(Duration(seconds: 1));
+    await Future.delayed(Duration(milliseconds: 600));
     child = Container(
         key: Key('secondImage'),
         height: 150,
