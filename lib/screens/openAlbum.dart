@@ -80,26 +80,29 @@ class _OpenAlbumState extends State<OpenAlbum> {
   }
 
   _getAllFilesOfDir() async {
-    var result = await dbManager.readDirectoryFromAllFiles(
-        widget.albumsNames[0], openDB);
+    for (var element in widget.albumsNames) {
+      print(element);
 
-    for (var element in result) {
-      UsableFilesForList usableFile = UsableFilesForList(
-          element['FilePath'],
-          element['FileName'],
-          element['ThumbPath'],
-          element['FileType'],
-          element['VideoDuration'],
-          element['FileOrientation'],
-          element['SpecialIMG'],
-          element['CreatedDay'],
-          element['Created']);
+      var result = await dbManager.readDirectoryFromAllFiles(element, openDB);
 
-      File thumbFile = File(element['ThumbPath']);
+      for (var element in result) {
+        UsableFilesForList usableFile = UsableFilesForList(
+            element['FilePath'],
+            element['FileName'],
+            element['ThumbPath'],
+            element['FileType'],
+            element['VideoDuration'],
+            element['FileOrientation'],
+            element['SpecialIMG'],
+            element['CreatedDay'],
+            element['Created']);
 
-      allFiles.add([usableFile, thumbFile]);
+        File thumbFile = File(element['ThumbPath']);
+
+        allFiles.add([usableFile, thumbFile]);
+      }
+      allFiles.sort((a, b) => b[0].createdDate.compareTo(a[0].createdDate));
     }
-    allFiles.sort((a, b) => b[0].createdDate.compareTo(a[0].createdDate));
     _createLists();
   }
 
